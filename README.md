@@ -1,6 +1,6 @@
 # Girls' Frontline Story Editor
 
-简体中文 · [English](README.en.md)
+简体中文 · [繁體中文](README.zh-TW.md) · [English](README.en.md)
 
 《少女前线2：追放》的非官方同人剧情编辑器。把对白、旁白和停顿编排成场景，为本地人物模型设置出入场、站位和表情，随后在浏览器预览并导出横屏 MP4。
 

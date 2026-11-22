@@ -45,13 +45,18 @@
     },
     {
       "path": "README.en.md",
-      "bytes": 3842,
-      "sha256": "51a1544550deaeee8d30d45a5e1562b60d247149042051081b65341611422e57"
+      "bytes": 3877,
+      "sha256": "2be99b9dc04853400641008951e844b1bca6fdff3429370e6032a16c0bd7b470"
     },
     {
       "path": "README.md",
-      "bytes": 3432,
-      "sha256": "ea1ee532a03aa9fc73bde0df43eeee6795ea2879565415b9429ccb71f570fa13"
+      "bytes": 3467,
+      "sha256": "17d0b278eb1b6607e7a7db9c3fe5b8b733078031d30d942f9332c533647dbffc"
+    },
+    {
+      "path": "README.zh-TW.md",
+      "bytes": 3592,
+      "sha256": "9e43350f27398d5da08e9449713275c8934b5ee24d2ee717742d41a689955fc8"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -115,8 +120,8 @@
     },
     {
       "path": "scripts/source-files.mjs",
-      "bytes": 2386,
-      "sha256": "59875dc6a24d601d748ec0c0821efc2ecfee8d92819fb5d2f024975fdb479631"
+      "bytes": 2405,
+      "sha256": "75b92e7b0b4497fb70f1869697ca39ee16f50d28bf2303951000fbcc7c1d459e"
     },
     {
       "path": "scripts/verify-manifest.mjs",

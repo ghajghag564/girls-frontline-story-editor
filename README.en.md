@@ -1,6 +1,6 @@
 # Girls' Frontline Story Editor
 
-[简体中文](README.md) · English
+[简体中文](README.md) · [繁體中文](README.zh-TW.md) · English
 
 An unofficial fan-story editor for Girls’ Frontline 2: Exilium. Arrange dialogue, narration, and pauses into scenes. Set character entrances, positions, and expressions using local models, then preview the result in a browser and export a widescreen MP4.
 

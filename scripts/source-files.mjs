@@ -8,7 +8,7 @@ export const manifestName = 'source-manifest.json';
 
 const rootFiles = new Set([
   '.gitattributes', '.gitignore', 'ASSET_RIGHTS.md', 'AUTHORS', 'LICENSE.md',
-  'LICENSE_SCOPE.md', 'NOTICE', 'README.md', 'README.en.md', 'THIRD_PARTY_NOTICES.md',
+  'LICENSE_SCOPE.md', 'NOTICE', 'README.md', 'README.en.md', 'README.zh-TW.md', 'THIRD_PARTY_NOTICES.md',
   'package.json', 'package-lock.json', 'local-config.example.json', manifestName,
 ]);
 const directories = new Set([
