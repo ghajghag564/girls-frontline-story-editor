@@ -1,0 +1,3 @@
+# Preserve the bytes hashed in source-manifest.json, including on Windows.
+* -text
+source-manifest.json linguist-generated=true

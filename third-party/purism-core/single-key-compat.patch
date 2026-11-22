@@ -1,0 +1,178 @@
+Purism Core 1.1.0 single-key parameter-axis compatibility patch
+Upstream commit: 1069334965522df5d0b791e97f01e26b19c45456
+Copyright (c) 2026 Sakura Motion Project. <https://sakura2d.org/>
+SPDX-License-Identifier: MIT
+Full license text: LICENSE in this directory.
+Project modifications are provided under MIT. See the editor project's NOTICE
+for project contributor attribution.
+
+Editor project changes are marked in the diff below. The patch makes model
+validation, buffer sizing, and interpolation agree on the reachable corners
+when a parameter axis has only one key.
+
+--- a/src/verify.h
++++ b/src/verify.h
+@@ -17,6 +17,9 @@
+ PSM__DEF int psm__verify_sections(struct psm__sections *ms, psm__u8 *p,
+     psm__u32 *offsets, psm_size n, psm_size off, psm__u8 ver, bool bounds);
+ 
++PSM__DEF psm__i32 psm__binding_blend_capacity(const struct psm__sections *src,
++    const struct psm__count_info *cnt, psm__i32 bi);
++
+ PSM__DEF int psm__verify_idx(psm__u8 ver, const struct psm__sections *src);
+ 
+ #endif /* PSM__VERIFY_H */
+--- a/src/verify.c
++++ b/src/verify.c
+@@ -118,6 +118,33 @@
+ #undef psm__predicate_static
+ #undef psm__predicate_dynamic
+   return PSM__OK;
++}
++
++/* A table with a single key always has zero interpolation weight. Storage
++ * and the verified source window must use the same number of reachable
++ * corners. Check every index here as arena sizing can precede model init. */
++PSM__DEF psm__i32
++psm__binding_blend_capacity(const struct psm__sections *src,
++    const struct psm__count_info *cnt, psm__i32 bi)
++{
++  if (!psm__valid_idx(bi, cnt->bindings) ||
++      !src->binding_src.key_table_idx_len || !src->binding_src.key_table_idx_off)
++    return 0;
++  psm__i32 len = src->binding_src.key_table_idx_len[bi];
++  if (len == 0) return 1;
++  psm__i32 off = src->binding_src.key_table_idx_off[bi];
++  if (len < 0 || len > PSM__MAX_KEY_TABLES ||
++      !psm__valid_range(off, len, cnt->key_table_idx) ||
++      !src->key_table_idx_src.idx || !src->key_table_src.keys_len)
++    return 0;
++  psm__u32 axes = 0;
++  for (psm__i32 i = 0; i < len; i++) {
++    psm__i32 table = src->key_table_idx_src.idx[off + i];
++    if (!psm__valid_idx(table, cnt->key_tables) ||
++        src->key_table_src.keys_len[table] < 0) return 0;
++    if (src->key_table_src.keys_len[table] > 1) axes++;
++  }
++  return (psm__i32)(1u << axes);
+ }
+ 
+ static psm__u32
+@@ -347,9 +374,8 @@
+         PSM__ERR_FILE_CORRUPT, \
+         "%s[%d] combo span %u > key_len %d", \
+         #obj_src, _i, _prod, _kl); \
+-    psm__i32 _mc = 1 << psm__clamp_i32( \
+-        src->binding_src.key_table_idx_len[_bi], 0, PSM__MAX_KEY_TABLES); \
+-    PSM__FAIL(!psm__valid_range((obj_src).keyform_off[_i], _mc, (keyform_total)), \
++    psm__i32 _mc = psm__binding_blend_capacity(src, cnt, _bi); \
++    PSM__FAIL(_mc <= 0 || !psm__valid_range((obj_src).keyform_off[_i], _mc, (keyform_total)), \
+         PSM__ERR_FILE_CORRUPT, \
+         "%s[%d] keyform_off=%d + max_blend=%d > total %d", #obj_src, _i, \
+         (obj_src).keyform_off[_i], _mc, (keyform_total)); \
+--- a/src/model.c
++++ b/src/model.c
+@@ -15,6 +15,7 @@
+ #include "moc3.h"
+ #include "model.h"
+ #include "update.h"
++#include "verify.h"
+ 
+ /*
+  * Remap v6 extended blend modes to the closest v5 equivalents.
+@@ -48,22 +49,6 @@
+ #endif
+ }
+ 
+-/*
+- * Number of key tables (parameter axes) bound to object idx_arr[i], clamped to
+- * PSM__MAX_KEY_TABLES. Self-bounds-checking: returns 0 for an out-of-range
+- * binding index, so it is safe to call from the size pass before validation.
+- */
+-static inline psm__i32
+-psm__binding_param_count(const struct psm__sections *src,
+-    const struct psm__count_info *cnt, const psm__i32 *idx_arr, psm__i32 i)
+-{
+-  psm__i32 bi = idx_arr[i];
+-  if (!psm__valid_idx(bi, cnt->bindings))
+-    return 0;
+-  return psm__clamp_i32(src->binding_src.key_table_idx_len[bi],
+-      0, PSM__MAX_KEY_TABLES);
+-}
+-
+ static inline psm__u32
+ psm__acc_add(struct psm__arena *a, psm__u32 acc, psm__u32 add)
+ {
+@@ -85,8 +70,6 @@
+   }
+   return psm__align_to_16(2u * (psm__u32)sizeof(psm__f32) * v);
+ }
+-
+-#define PSM__MAX_COMB(pc) ((psm__u32)1 << (pc))
+ 
+ /*
+  * Per-object-type scratch sizing for the arena dry-run. Both use the
+@@ -101,7 +84,7 @@
+   if (count > 0 && binding_idx)
+     for (psm__i32 i = 0; i < count; i++)
+       total = psm__acc_add(a, total,
+-          PSM__MAX_COMB(psm__binding_param_count(src, cnt, binding_idx, i)));
++          (psm__u32)psm__binding_blend_capacity(src, cnt, binding_idx[i]));
+   return total;
+ }
+ 
+@@ -155,7 +138,8 @@
+       psm__i32 pc = psm__clamp_i32(src->binding_src.key_table_idx_len[i],
+           0, PSM__MAX_KEY_TABLES);
+       kb_ptr_total = psm__acc_add(arena, kb_ptr_total, (psm__u32)pc);
+-      kb_idx_total = psm__acc_add(arena, kb_idx_total, PSM__MAX_COMB(pc));
++      kb_idx_total = psm__acc_add(arena, kb_idx_total,
++          (psm__u32)psm__binding_blend_capacity(src, cnt, i));
+     }
+   }
+ 
+@@ -192,9 +176,9 @@
+     for (psm__i32 i = 0; i < cnt->offscreens; i++) {
+       psm__i32 oi = src->offscreen_src.owner_idx[i];
+       if (!psm__valid_idx(oi, cnt->parts)) continue;
+-      psm__i32 pc = psm__binding_param_count(src, cnt,
+-          src->part_src.binding_idx, oi);
+-      os_tmp_total = psm__acc_add(arena, os_tmp_total, PSM__MAX_COMB(pc));
++      psm__i32 capacity = psm__binding_blend_capacity(src, cnt,
++          src->part_src.binding_idx[oi]);
++      os_tmp_total = psm__acc_add(arena, os_tmp_total, (psm__u32)capacity);
+     }
+   }
+ 
+@@ -530,7 +514,7 @@
+       struct psm__binding *kc = &m->bindings.items[i];
+ 
+       psm__i32 bc = src->binding_src.key_table_idx_len[i];
+-      psm__u32 mc = 1 << bc;
++      psm__u32 mc = (psm__u32)psm__binding_blend_capacity(src, cnt, i);
+ 
+       kc->key_tables = bp;
+       kc->keyform_idx = ki;
+--- a/src/param.c
++++ b/src/param.c
+@@ -364,16 +364,16 @@
+     }
+ 
+     psm__u32 blend_count = 1u << active_binding_count;
+-    binds[bi].blend_count = blend_count;
+-
+-    /* Skip if keyform_idx or weights arrays are missing */
+-    if (!binds[bi].keyform_idx || !binds[bi].weights) {
++    /* Guard the actual number of corners before touching interpolation storage. */
++    if (binds[bi].max_blend < 1 || blend_count > (psm__u32)binds[bi].max_blend ||
++        !binds[bi].keyform_idx || !binds[bi].weights) {
+       binds[bi].idx_dirty = 0;
+       binds[bi].weight_dirty = 0;
+       binds[bi].out_of_range = true;
+       continue;
+     }
+ 
++    binds[bi].blend_count = blend_count;
+     memset(binds[bi].keyform_idx, 0, blend_count * sizeof(psm__i32));
+     for (psm__i32 j = 0; j < (psm__i32)blend_count; j++) {
+       binds[bi].weights[j] = 1.0f;

@@ -1,0 +1,45 @@
+# 本地配置与素材目录
+
+`editor.local.json` 中的相对路径以该配置文件所在的目录为准。也可以使用绝对路径。`workspaceDirectory` 用于保存工程、预览状态和导出文件，它需要与源码目录及素材目录分开。
+
+```json
+{
+  "materialsDirectory": "./materials",
+  "workspaceDirectory": "./workspace",
+  "purismCore": "./dependencies/PurismCore.dll",
+  "ffmpeg": "./dependencies/ffmpeg.exe",
+  "exampleProject": "./practice.gf2story.json"
+}
+```
+
+`exampleProject` 是可选的本地工程，首次打开空工作区会预览它。已有工程可以从「打开」选择或导入。练习副本、自动保存和 MP4 分别写入工作区的 `userdata/` 和 `exports/`。
+
+## 配置素材
+
+`materialsDirectory` 填写包含 `assets/` 的父目录。编辑器依据 `assets/catalog.json` 中的相对路径读取本机素材，通过 `assets/asset-hashes.json` 核对文件。
+
+```text
+materials/
+  assets/
+    catalog.json
+    asset-hashes.json
+    …
+```
+
+自建素材目录时，先写 `assets/catalog.json`，顶层包含 `version`、`backgrounds`、`characters` 和 `music`。没有对应素材的列表填写 `[]`。`version` 是自选的短字符串，素材编号 `id` 使用字母、数字、下划线或连字符。同一分类的编号彼此唯一，路径相对 `assets/`，分隔符为 `/`。
+
+| 分类 | 目录字段 |
+| --- | --- |
+| 背景 | `id`、`name`、`path` 指向 PNG。`width`、`height` 为像素尺寸。可选 `thumbnail`。 |
+| 人物 | `id`、`name`、`modelPath` 指向 MOC3。`textures` 每项含 `index` 和 PNG 的 `path`，索引对应模型贴图槽。可选 `styleName`、`thumbnail`、`framing.bounds` 和 `defaultPlacement`。 |
+| 参数与表情 | `parameters` 每项含 `id`、`min`、`max`、`default`。`expressions` 每项含 `id`、`name`、`parameters`，表情参数含 `id`、`value`，可选 `blend` 为 `Overwrite`、`Add` 或 `Multiply`。可选 `fadeIn`、`fadeOut` 以秒计。 |
+| 眼睛与嘴部 | 可选 `eyeBlink` 支持 `enabled`、`mean` 和 `parameterIds`。口型使用模型实际提供的 `ParamMouthOpenY`，依工程时间轴与标点驱动。 |
+| 配乐 | `id`、`name`、`path` 指向双声道 48 kHz FLAC。`samples` 是每声道样本数，`duration` 是秒数。可选以样本编号表示的 `loop.start` 与 `loop.end`。 |
+
+凡在目录中写有 `sha256` 的素材都按该值校验。更新目录后，从源码根目录运行下面的命令，为明确列出的本地文件记录大小与 SHA-256。
+
+```powershell
+node scripts/index-materials.mjs 'C:/GFSE-local/materials'
+```
+
+编辑器支持从界面导入 JPG 或 PNG 作为静态人物和背景。目录中的模型通过贴图槽编号关联 PNG。工程会保存背景取景，以及人物的站位和大小。

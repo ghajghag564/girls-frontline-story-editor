@@ -1,0 +1,17 @@
+{
+  "name": "girls-frontline-story-editor-source",
+  "version": "0.1.27-rc.7",
+  "private": true,
+  "description": "Locally runnable source for Girls' Frontline Story Editor",
+  "type": "module",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "engines": {"node": ">=24 <25"},
+  "dependencies": {"koffi": "3.3.3"},
+  "scripts": {
+    "start": "node src/server/start.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "node scripts/check.mjs --tests-only",
+    "manifest": "node scripts/build-manifest.mjs",
+    "verify": "node scripts/verify-manifest.mjs"
+  }
+}
