@@ -8,7 +8,7 @@ The project is independent of the game's operators and rights holders.
 
 **0.1.30 · Windows x64 · Runs locally**
 
-![The editor showing the scene list, stage preview, entry controls, and timeline](docs/images/editor.png)
+![The English editor showing the scene list, stage preview, entry controls, and timeline](docs/images/editor.en.png)
 
 *Screenshot from a live session with an empty media catalog and original sample dialogue.*
 

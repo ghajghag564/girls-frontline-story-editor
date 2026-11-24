@@ -28,6 +28,9 @@ dependencies/
 *.gf2story.json
 *.png
 !/docs/images/editor.png
+!/docs/images/editor.zh-TW.png
+!/docs/images/editor.en.png
+!/docs/images/editor.ja.png
 *.jpg
 *.webp
 *.flac

@@ -15,8 +15,8 @@
     },
     {
       "path": ".gitignore",
-      "bytes": 547,
-      "sha256": "70a00bb4df593ec7c2573625e96be30f504925645d9a3502a5a47ecd78160a62"
+      "bytes": 634,
+      "sha256": "2245d52377240593c6a4d40634e03d42b0d9bf44372a4502cc076fb461519b83"
     },
     {
       "path": "ASSET_RIGHTS.md",
@@ -45,23 +45,23 @@
     },
     {
       "path": "README.en.md",
-      "bytes": 4786,
-      "sha256": "985e404bd4824701c054263ab231fdeb5e9bd81ead4dd1efd167e0253bb90312"
+      "bytes": 4797,
+      "sha256": "71a08e4232c300398cc7646d7cbc79fe571b04b7cf42347f5c11fcc1b41ffac2"
     },
     {
       "path": "README.ja.md",
-      "bytes": 5514,
-      "sha256": "0574c0d329d0761af974763ecfbce087e05e81dda8875683d9d87b17d3397e25"
+      "bytes": 5529,
+      "sha256": "165c662746a77625fdbadfa04c7e21ca57dc2a4990a9f57ae19a3e01fe54269f"
     },
     {
       "path": "README.md",
-      "bytes": 4211,
-      "sha256": "690026ce886c8ec7bf095ed6ca2f31f679c2530e2393b9231cbf3c256df8f684"
+      "bytes": 4223,
+      "sha256": "28f518afcf5b120031143c7ae078d3b6c2b7f50f800bd3f14e860cbac27a00a7"
     },
     {
       "path": "README.zh-TW.md",
-      "bytes": 4322,
-      "sha256": "cd3597de8ff27f49bd63d0965e7701b6967dcb72bb400f5c67c94cbb548e5142"
+      "bytes": 4340,
+      "sha256": "c430fc0ca5c6ad755dcd72ace7d8f2a96fcb47457ba64971a06e319f85b69e2f"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -89,9 +89,24 @@
       "sha256": "b2b5593e5f3585abf240b84602975be888e605bfd81f8f74b6abadba7e1973ab"
     },
     {
+      "path": "docs/images/editor.en.png",
+      "bytes": 111053,
+      "sha256": "0a6fa689e6c498c2c8abeeb668baf04925f4e55ea95821acdda3c46eb193af20"
+    },
+    {
+      "path": "docs/images/editor.ja.png",
+      "bytes": 140161,
+      "sha256": "58c4c465789c31d286e108a3e6d78b130ba2102a9cd5bb27bf3804688911ce9d"
+    },
+    {
       "path": "docs/images/editor.png",
-      "bytes": 109664,
-      "sha256": "247c3a490bd3f5c0d9d814d57d386d798ee00b95f2c27292fd1567720fbd8d9c"
+      "bytes": 109264,
+      "sha256": "18462a1ac5bec12e6a67c1791405f2f107f6b64241a84add290b0a4efc2f0579"
+    },
+    {
+      "path": "docs/images/editor.zh-TW.png",
+      "bytes": 111254,
+      "sha256": "1e5e635e7433a2be2dd98a0c7aae47acadc4418faf214fe2d2ebefc349f8bfda"
     },
     {
       "path": "local-config.example.json",
@@ -125,8 +140,8 @@
     },
     {
       "path": "scripts/source-files.mjs",
-      "bytes": 2491,
-      "sha256": "d07cf2ea6c7b4e9f48939722690a4dd6d25b8991d3500add72e5a24e264c036b"
+      "bytes": 2513,
+      "sha256": "17c35bf22b90cd2e5f18f41977d9363852231b86b20fdb96b46621e5c1c0933c"
     },
     {
       "path": "scripts/verify-manifest.mjs",

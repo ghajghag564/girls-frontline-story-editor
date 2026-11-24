@@ -22,7 +22,7 @@ const allowedPaths = [
   /^tests\/[\w-]+\.test\.mjs$/,
   /^scripts\/(?:check|build-manifest|verify-manifest|source-files|index-materials)\.mjs$/,
   /^docs\/[\w-]+\.md$/,
-  /^docs\/images\/editor\.png$/,
+  /^docs\/images\/editor(?:\.(?:zh-TW|en|ja))?\.png$/,
   /^branding\/author\.json$/,
   /^\.github\/workflows\/checks\.yml$/,
   /^third-party\/purism-core\/(?:LICENSE|single-key-compat\.patch)$/,
