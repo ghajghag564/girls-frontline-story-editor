@@ -1,4 +1,4 @@
-import { defaultInterfaceLanguage, interfaceLanguages, isInterfaceLanguage } from '../core/interface-language.mjs';
+import { defaultInterfaceLanguage, interfaceLanguages, isInterfaceLanguage, halfwidthTraditionalPunctuation } from '../core/interface-language.mjs';
 import { messages } from './translations.mjs';
 
 const columns = { 'zh-TW': 0, en: 1, ja: 2 };
@@ -15,8 +15,10 @@ function format(message, values) {
 }
 
 export function t(key, ...values) {
-  const translation = messages[key]?.[columns[language]] ?? key;
-  return format(translation, values);
+  const translation = messages[key]?.[columns[language]];
+  const template = language === 'zh-TW' && translation !== undefined
+    ? halfwidthTraditionalPunctuation(translation) : translation ?? key;
+  return format(template, values);
 }
 
 const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

@@ -105,8 +105,8 @@
     },
     {
       "path": "docs/images/editor.zh-TW.png",
-      "bytes": 111254,
-      "sha256": "1e5e635e7433a2be2dd98a0c7aae47acadc4418faf214fe2d2ebefc349f8bfda"
+      "bytes": 113632,
+      "sha256": "b18cef7ee6b41ac92a232444f5a79a79409ce427d5450ebc8ed35a932dbb973a"
     },
     {
       "path": "local-config.example.json",
@@ -170,8 +170,8 @@
     },
     {
       "path": "src/core/example-language.mjs",
-      "bytes": 2697,
-      "sha256": "a4a7e6ea796fd0b45fbf089ebdb9feac5a60f8ca6a76e9b2efed5cbd808a8ce9"
+      "bytes": 3059,
+      "sha256": "0c9df5ce7ed8e7d0c7e9e1005d17ba8d57e92a5a1a4c60b845a0f5217031cbc4"
     },
     {
       "path": "src/core/eye-blink.mjs",
@@ -180,8 +180,8 @@
     },
     {
       "path": "src/core/interface-language.mjs",
-      "bytes": 321,
-      "sha256": "78e20d30c17211341aaad7f9810884645f1cf464f04799bcd7fcdf908aa778d1"
+      "bytes": 1140,
+      "sha256": "bcb22f85fb14c44d741736030351ba6d656899482cac9a1cc291ef8a7d31404d"
     },
     {
       "path": "src/core/linear-overlay.mjs",
@@ -230,8 +230,8 @@
     },
     {
       "path": "src/core/starter-example.mjs",
-      "bytes": 3023,
-      "sha256": "bcf8dec8004e2747812847f2fc5ea3441264caf430ace335f9434fbe39f14f66"
+      "bytes": 3036,
+      "sha256": "b53ccc35dc7feff3b6acafecbb34cf68e918e5396d74a317330a96d7a5b8c41c"
     },
     {
       "path": "src/core/story-interface.mjs",
@@ -395,8 +395,8 @@
     },
     {
       "path": "src/web/i18n.mjs",
-      "bytes": 3514,
-      "sha256": "1ba621c4eb86bee03577a6a1597cc095b5063a41eeab795bdcb66d99d0f2626f"
+      "bytes": 3679,
+      "sha256": "5235a018bfb4ff0474aedc6382d2e0d4cbdf5cba6cd0f609f861a1a8e53aa95f"
     },
     {
       "path": "src/web/image-import.mjs",
@@ -442,6 +442,11 @@
       "path": "tests/export-space.test.mjs",
       "bytes": 2596,
       "sha256": "e2a48612f4bf977bc618f8b11ca96f052ff0dd1cff591b2640d685ee6effe0ae"
+    },
+    {
+      "path": "tests/interface-language.test.mjs",
+      "bytes": 2383,
+      "sha256": "0537040bbe08eba7017ea6140e48c331b82842e02cd31905d8a1717479ff4d59"
     },
     {
       "path": "tests/linear-overlay.test.mjs",

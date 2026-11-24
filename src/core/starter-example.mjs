@@ -42,7 +42,7 @@ export function localizeStarterExample(project, language) {
   if (line.kind!=='dialogue' || line.hold!==4 || line.transition!==0 || line.stage?.color!=='#253747' ||
       line.stage.background || line.stage.actors?.length || line.speakerInstanceId || line.speakerInstanceIds?.length ||
       line.music?.op!=='inherit') return project;
-  const known=(value,original,alts)=>value===original||alts.includes(value);
+  const known=(value,original,alts)=>exampleText(value,original,alts,'zh-CN')===original;
   if (!known(project.title,template.title,copy.title) || !known(scene.title,stockScene.title,copy.scenes[sceneId]) ||
       !known(line.speaker,stockLine.speaker,copy.speakers[stockLine.speaker]) ||
       !known(line.text,stockLine.text,copy.lines[lineId])) return project;

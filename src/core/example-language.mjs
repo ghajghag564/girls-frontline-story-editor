@@ -1,10 +1,15 @@
 import {graphemes} from './timeline.mjs';
+import {halfwidthTraditionalPunctuation} from './interface-language.mjs';
 
 const columns={'zh-TW':0,en:1,ja:2};
 
 export function exampleText(value, original, alternatives, language) {
-  if (!alternatives || (value!==original && !alternatives.includes(value))) return value;
-  return alternatives[columns[language]] ?? original;
+  if (!alternatives) return value;
+  const previousTraditional = alternatives[columns['zh-TW']];
+  const traditional = typeof previousTraditional === 'string'
+    ? halfwidthTraditionalPunctuation(previousTraditional) : previousTraditional;
+  if (value !== original && value !== traditional && !alternatives.includes(value)) return value;
+  return (language === 'zh-TW' ? traditional : alternatives[columns[language]]) ?? original;
 }
 
 function stockRate(line, text) {
