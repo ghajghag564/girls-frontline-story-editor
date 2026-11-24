@@ -1,4 +1,28 @@
-const steps = [
+import {t} from './i18n.mjs';
+const quickSteps = [
+  {
+    title: '打开练习工程', action: 'example', button: '打开练习工程',
+    intro: '可以用配置的本地示例，也可以从一段纯色对白开始。打开后点「播放」看几秒。',
+    practice: '点舞台下方的「播放」，看台词出现在画面上。',
+  },
+  {
+    title: '改一句台词', action: 'dialogue', button: '去改台词',
+    intro: '改一句对白，然后回放，看看你写的字怎样出现在舞台上。',
+    practice: '把「正文」改成「准备好了，我们开始吧！」，再点「播放」回看。',
+  },
+  {
+    title: '切换字幕样式', action: 'subtitle', button: '去选字幕样式',
+    intro: '从游戏原版切到「小剧场模式」，试着改一个颜色。回到舞台后，对照两种样式的效果。',
+    practice: '回到舞台看字幕。整部作品的预览和 MP4 都使用你选的样式。',
+  },
+  {
+    title: '导出开头 3 秒', action: 'export', button: '去导出片段',
+    intro: '导出面板会预填开头最多 3 秒。点「导出 MP4」，完成后点「下载已完成的视频」。',
+    practice: '打开下载的 MP4，核对台词和字幕样式。',
+  },
+];
+
+const detailedSteps = [
   {
     "title": "打开练习工程",
     "action": "example",
@@ -41,7 +65,7 @@ const steps = [
     "button": "定位旁白",
     "intro": "旁白用于描述动作或补充说明。",
     "tasks": [
-      "选择一条旁白或点击「＋ 旁白」。",
+      "选择一条旁白，或从左侧「插入条目」选择「＋ 旁白」。",
       "更改右侧背景，查看下一句如何继承。"
     ],
     "tip": "「继承上句」会沿用前一句背景。",
@@ -90,7 +114,7 @@ const steps = [
     "intro": "保存后可从「打开」继续。",
     "tasks": [
       "输入一个容易辨认的名字，点击「保存」。",
-      "用「下载工程」取得可以备份的工程文件。"
+      "要备份工程，可从顶栏「工程」菜单选择「下载工程」。"
     ],
     "tip": "「另存为」可以保留练习的不同版本。",
     "practice": "给工程命名并保存。"
@@ -101,13 +125,23 @@ const steps = [
     "button": "打开导出设置",
     "intro": "选一小段先检查台词、画面和音乐。",
     "tasks": [
-      "选分辨率、帧率与编码，然后填导出起止时间。",
-      "点击「导出 MP4」，等待完成后打开视频。"
+      "从舞台的「字幕样式」选定全片用的模式，再选分辨率、帧率、编码和导出时间。",
+      "点击「导出 MP4」，完成后点「下载已完成的视频」。"
     ],
     "tip": "导出时保持编辑器页面打开。",
     "practice": "导出开头几秒并检查成片。"
   }
 ];
+
+const guides = { quick: quickSteps, detail: detailedSteps };
+
+function readProgress(value, steps) {
+  return {
+    seen: value?.seen === true,
+    completed: value?.completed === true,
+    step: Math.max(0, Math.min(steps.length - 1, Number.isInteger(value?.step) ? value.step : 0)),
+  };
+}
 
 function exerciseEntry(project, action, selectedId) {
   let actors = [];
@@ -129,81 +163,118 @@ function exerciseEntry(project, action, selectedId) {
   if (action === 'music') return pick(shot => shot.line.music?.op === 'play');
 }
 
-export function setupTutorial({api, actions, onError, onPause = () => {}, getProject, selectEntry}) {
+export function setupTutorial({api, actions, onError, onPause = () => {}, getProject, selectEntry, revealControl}) {
   const $ = id => document.getElementById(id);
   const dialog = $('tutorial-dialog'), tip = $('start-tip'), originalTip = [...tip.childNodes];
-  let index = 0, state = {seen: false, completed: false, step: 0};
-  let saving = Promise.resolve(), target = null, coaching = false;
+  const progress = {
+    quick: { ...readProgress(undefined, quickSteps), projectId: null },
+    detail: readProgress(undefined, detailedSteps),
+  };
+  let guide = 'quick', saving = Promise.resolve(), target = null, coaching = false, preparing = false;
+  let practiceMessage = null;
   const text = (tag, value) => Object.assign(document.createElement(tag), {textContent: value});
   const makeButton = (label, action) => Object.assign(text('button', label), {type: 'button', onclick: action});
+  const active = () => progress[guide];
+  const currentStep = () => guides[guide][active().step];
 
+  function resumableGuide() {
+    return [guide, guide === 'quick' ? 'detail' : 'quick'].find(key => progress[key].seen && !progress[key].completed);
+  }
+  function updateResume() {
+    $('guide-resume').hidden = !resumableGuide();
+  }
   function remember() {
-    state.seen = true;
-    state.step = index;
-    const snapshot = {...state};
-    saving = saving.then(() => api('/tutorial', {method: 'POST', body: snapshot})).catch(onError);
-    $('guide-resume').hidden = state.completed;
+    active().seen = true;
+    const body = { guide, ...active() };
+    saving = saving.then(() => api('/tutorial', {method: 'POST', body})).catch(onError);
+    updateResume();
   }
   function clearPractice() {
     target?.classList.remove('tutorial-target');
     target = null;
     coaching = false;
+    practiceMessage = null;
     tip.classList.remove('tutorial-practice');
     tip.replaceChildren(...originalTip);
   }
   function focus(control) {
     if (!control || control.disabled) return;
+    revealControl(control);
     target = control;
     target.classList.add('tutorial-target');
     target.scrollIntoView({block: 'nearest', inline: 'nearest'});
     target.focus({preventScroll: true});
   }
   function showStep() {
-    const step = steps[index];
-    $('tutorial-progress').textContent = `第 ${index + 1} / ${steps.length} 步`;
-    $('tutorial-title').textContent = step.title;
-    $('tutorial-intro').textContent = step.intro;
-    $('tutorial-list').replaceChildren(...step.tasks.map(task => text('li', task)));
-    $('tutorial-tip').textContent = step.tip;
-    tabs.forEach((button, i) => button.setAttribute('aria-current', i === index ? 'step' : 'false'));
+    const steps = guides[guide], index = active().step, step = currentStep();
+    const quick = guide === 'quick';
+    dialog.dataset.guide = guide;
+    $('tutorial-progress').textContent = t(quick ? '快速上手 · 第 {0} / {1} 步' : '第 {0} / {1} 步', index + 1, steps.length);
+    $('tutorial-title').textContent = t(step.title);
+    $('tutorial-intro').textContent = t(step.intro);
+    $('tutorial-list').replaceChildren(...(step.tasks ?? []).map(task => text('li', t(task))));
+    $('tutorial-tip').textContent = t(step.tip ?? '');
+    for (const id of ['tutorial-tabs', 'tutorial-list', 'tutorial-tip', 'tutorial-return-hint', 'tutorial-next']) $(id).hidden = quick;
+    $('tutorial-footer').hidden = quick && index === 0;
+    tabs.forEach((button, i) => button.setAttribute('aria-current', !quick && i === index ? 'step' : 'false'));
     $('tutorial-prev').disabled = index === 0;
-    $('tutorial-next').textContent = index === steps.length - 1 ? '完成教程' : '下一步';
-    $('tutorial-action').textContent = step.button;
+    $('tutorial-next').textContent = index === steps.length - 1 ? t("完成教程") : t("下一步");
+    $('tutorial-action').textContent = t(step.button);
   }
-  function open() {
-    if (dialog.open) return;
+  function open(nextGuide = guide) {
+    if (dialog.open || preparing) return;
     onPause();
     clearPractice();
+    guide = nextGuide;
+    if (active().completed) {
+      active().step = 0;
+      active().completed = false;
+      if (guide === 'quick') active().projectId = null;
+    }
     showStep();
     dialog.showModal();
+    $('tutorial-action').focus();
+  }
+  function dismiss() {
+    remember();
+    dialog.close();
   }
   function finish() {
-    state.completed = true;
+    active().completed = true;
     clearPractice();
+    remember();
     if (dialog.open) dialog.close();
-    else remember();
   }
   function next() {
-    if (index === steps.length - 1) return finish();
-    index++;
+    if (active().step === guides[guide].length - 1) return finish();
+    active().step++;
     if (dialog.open) showStep();
-    else open();
+    else {
+      remember();
+      open();
+    }
   }
-  function showPractice() {
-    const step = steps[index], heading = text('strong', `练习 ${index + 1} / ${steps.length} · ${step.title}`);
-    const instruction = text('span', step.practice);
+  function showPractice(message = currentStep().practice) {
+    const step = currentStep();
+    practiceMessage = message;
+    const heading = text('strong', (guide === 'quick' ? t("快速上手 ") : t("练习 ")) + (active().step + 1) + ' / ' + guides[guide].length + ' · ' + t(step.title));
+    const instruction = text('span', t(message));
     instruction.id = 'tutorial-practice-text';
     instruction.setAttribute('role', 'status');
     const navigation = document.createElement('div');
-    navigation.append(makeButton('看步骤', open), makeButton(index === steps.length - 1 ? '完成教程' : '下一步', next),
-      makeButton('收起', clearPractice));
+    const proceed = makeButton(active().step === guides[guide].length - 1 ? t("完成教程") : t("下一步"), next);
+    if (guide === 'quick') proceed.classList.add('accent');
+    navigation.append(makeButton(t("看步骤"), () => open()), proceed, makeButton(t("收起"), clearPractice));
     coaching = true;
     tip.classList.add('tutorial-practice');
     tip.replaceChildren(heading, instruction, navigation);
   }
   function feedback(message) {
     const output = $('tutorial-practice-text');
-    if (coaching && output) output.textContent = message;
+    if (coaching && output) {
+      practiceMessage = message;
+      output.textContent = t(message);
+    }
   }
   function locate(action) {
     const selected = document.querySelector('#scene-list .line-item.active')?.dataset.lineId;
@@ -211,17 +282,48 @@ export function setupTutorial({api, actions, onError, onPause = () => {}, getPro
     if (shot) selectEntry?.(shot.sceneId, shot.line.id);
     return shot;
   }
+  async function prepareQuickProject() {
+    const track = progress.quick;
+    preparing = true;
+    try {
+      if (track.projectId) await actions.resumeExample(track.projectId);
+      else {
+        track.projectId = await actions.quickExample();
+        if (!track.projectId) throw new Error(t("未能建立练习副本，请再试一次。"));
+        remember();
+      }
+    } catch (error) {
+      if (error.status === 404 && track.projectId) {
+        track.step = 0;
+        track.projectId = null;
+        remember();
+        throw new Error(t("找不到上次的练习副本。点「继续教程」建立新的副本。"));
+      }
+      throw error;
+    } finally {
+      preparing = false;
+    }
+  }
   async function practice() {
-    const {action} = steps[index];
-    state.completed = false;
-    dialog.close();
+    const {action} = currentStep();
+    const quick = guide === 'quick';
+    dismiss();
+    if (quick) await prepareQuickProject();
     showPractice();
-    if (action === 'example') return actions.example();
-    if (action === 'export') return actions.export();
+    if (action === 'example') return quick ? focus($('play')) : actions.example();
+    if (action === 'subtitle') {
+      actions.subtitle();
+      return focus($('subtitle-mode'));
+    }
+    if (action === 'export') return quick ? actions.quickExport() : actions.export();
     if (action === 'save') return focus($('project-title'));
     const shot = locate(action);
     if (action === 'music') {
-      if (shot) return $('choose-music').click();
+      if (shot) {
+        const control = $('choose-music');
+        revealControl(control);
+        return control.click();
+      }
       focus($('music-op'));
       feedback('当前工程尚未设置起播曲目。在音乐操作里选「播放／重新播放」，再进入曲库试听。');
       return;
@@ -236,39 +338,48 @@ export function setupTutorial({api, actions, onError, onPause = () => {}, getPro
     if (action === 'ending') return $('play').click();
     if (action === 'expression') {
       const preferred = shot.line.speakerInstanceId ?? shot.line.speakerInstanceIds?.[0];
-      const cards = [...$('actors').querySelectorAll('.actor-control')];
-      const choices = cards.map(c => ({id: c.dataset.instanceId, select: c.querySelector('select')}))
-        .filter(c => c.select && !c.select.disabled && c.select.options.length > 1);
-      const which = choices.find(c => c.id === preferred) ?? choices[0];
-      if (which) focus(which.select);
+      const choices = [...$('actors').querySelectorAll('.actor-control')].map(card => ({
+        id: card.dataset.instanceId, button: card.querySelector('[data-expression-preview]'),
+      })).filter(choice => choice.button);
+      const which = choices.find(choice => choice.id === preferred) ?? choices[0];
+      if (which) focus(which.button);
       else feedback('当前造型只有默认姿态。先用「人物入场」选择带表情的造型，再打开其表情预览。');
     }
   }
 
-  const tabs = steps.map((step, i) => makeButton(`${i + 1}. ${step.title}`, () => {
-    index = i;
+  const tabs = detailedSteps.map((step, i) => makeButton((i + 1) + ". " + t(step.title), () => {
+    active().step = i;
     showStep();
   }));
   $('tutorial-tabs').replaceChildren(...tabs);
-  $('tutorial-prev').onclick = () => { index = Math.max(0, index - 1); showStep(); };
+  $('tutorial-prev').onclick = () => { active().step = Math.max(0, active().step - 1); showStep(); };
   $('tutorial-next').onclick = next;
-  $('tutorial-later').onclick = () => dialog.close();
+  $('tutorial-later').onclick = dismiss;
   $('tutorial-action').onclick = () => { practice().catch(onError); };
-  dialog.addEventListener('close', remember);
-  $('guide-resume').onclick = open;
+  dialog.addEventListener('cancel', remember);
+  $('guide-quick').onclick = () => open('quick');
+  $('guide').onclick = () => open('detail');
+  $('guide-resume').onclick = () => { const nextGuide = resumableGuide(); if (nextGuide) open(nextGuide); };
   $('line-text').addEventListener('input', () => {
-    if (steps[index].action === 'dialogue') feedback('正文已改动。点击「播放」，看台词逐字出现时口型如何跟随。');
+    if (currentStep().action === 'dialogue') feedback(guide === 'quick'
+      ? '台词已改动。点击「播放」回看你的版本。'
+      : '正文已改动。点击「播放」，看台词逐字出现时口型如何跟随。');
   });
   return {
-    open: () => {
-      if (state.completed) { index = 0; state.completed = false; }
-      open();
+    refreshLocale: () => {
+      tabs.forEach((button, i) => { button.textContent = (i + 1) + '. ' + t(detailedSteps[i].title); });
+      if (dialog.open) showStep();
+      if (coaching) showPractice(practiceMessage);
     },
     firstRun: async () => {
-      state = await api('/tutorial');
-      index = Math.max(0, Math.min(steps.length - 1, Number(state.step) || 0));
-      $('guide-resume').hidden = state.completed;
-      if (!state.seen) open();
-    }
+      const state = await api('/tutorial');
+      progress.detail = readProgress(state, detailedSteps);
+      const savedQuick = state?.quick;
+      progress.quick = { ...readProgress(savedQuick, quickSteps), projectId: savedQuick?.projectId ?? null };
+      const savedGuide = state?.guide;
+      guide = savedGuide === 'quick' || savedGuide === 'detail' ? savedGuide : (progress.detail.seen ? 'detail' : 'quick');
+      updateResume();
+      if (!progress.quick.seen && !progress.detail.seen) open('quick');
+    },
   };
 }

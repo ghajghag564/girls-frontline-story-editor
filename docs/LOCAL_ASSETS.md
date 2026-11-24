@@ -7,12 +7,15 @@
   "materialsDirectory": "./materials",
   "workspaceDirectory": "./workspace",
   "purismCore": "./dependencies/PurismCore.dll",
+  "mediaFoundation": "./dependencies/media-foundation.exe",
   "ffmpeg": "./dependencies/ffmpeg.exe",
   "exampleProject": "./practice.gf2story.json"
 }
 ```
 
 `exampleProject` 是可选的本地工程，首次打开空工作区会预览它。已有工程可以从「打开」选择或导入。练习副本、自动保存和 MP4 分别写入工作区的 `userdata/` 和 `exports/`。
+
+`mediaFoundation` 指向自行构建的 Windows 调用程序。`ffmpeg` 指向自行安装的 FFmpeg，可用于备用，也可单独使用。未准备的字段直接从配置中移除。两项都省略时，可继续编辑和预览。配置更新后重启编辑器即可重新检测。 [Windows 导出构建](../src/native/BUILD.md)
 
 ## 配置素材
 

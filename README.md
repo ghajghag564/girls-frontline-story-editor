@@ -1,12 +1,12 @@
 # Girls' Frontline Story Editor
 
-简体中文 · [繁體中文](README.zh-TW.md) · [English](README.en.md)
+简体中文 · [繁體中文](README.zh-TW.md) · [English](README.en.md) · [日本語](README.ja.md)
 
 《少女前线2：追放》的非官方同人剧情编辑器。把对白、旁白和停顿编排成场景，为本地人物模型设置出入场、站位和表情，随后在浏览器预览并导出横屏 MP4。
 
 本项目与游戏运营方及权利人无隶属关系。
 
-**0.1.27-rc.7 · Windows x64 · 本地运行**
+**0.1.30 · Windows x64 · 本地运行**
 
 ![编辑器实机截图，显示场景列表、舞台预览、条目设置和时间轴](docs/images/editor.png)
 
@@ -14,16 +14,19 @@
 
 ## 可以做什么
 
+- **界面语言。** 通过顶部菜单切换简体中文、繁體中文、英文或日文。界面使用本机字型。
+- **主题与舞台视图。** 顶栏可切换石墨深色和明亮浅色。舞台画质独立设置，滚轮缩放，按住鼠标中键平移，点击「复原」回到居中的完整画面。
 - **编排剧情。** 将故事拆成多个场景，调整条目顺序、打字速度、停留和转场。
 - **预览演出。** 用本地模型、贴图、背景和配乐编排舞台，拖动时间轴检查人物站位、表情和音乐衔接。
-- **保存和导出。** 保存本地工程，从完整作品中选择一段，输出 16:9 的 H.264 或 H.265 MP4。
+- **切换字幕。** 为整部作品选择游戏原版布局或小剧场大字字幕，自定义角色名、台词和竖线颜色。舞台与 MP4 使用同一模式。
+- **保存和导出。** 保存本地工程并导出 16:9 MP4。已配置的 Windows 调用程序优先导出 H.264 + AAC，H.265 取决于设备，外置 FFmpeg 可作备用。
 
-仓库收录范围限于编辑器源码、测试、配置模板、文档、编辑器实机截图和标明许可的兼容补丁。模型、图像、配乐和练习工程均由使用者自行配置。游戏素材的使用依据相应权利人的许可。 [源码与功能范围](docs/SOURCE_SCOPE.md) · [素材权利](ASSET_RIGHTS.md)
+仓库收录范围限于编辑器源码、测试、配置模板、文档、编辑器实机截图和标明许可的兼容补丁。模型、图像、配乐和原作练习工程由使用者自行配置。游戏素材的使用依据相应权利人的许可。 [源码与功能范围](docs/SOURCE_SCOPE.md) · [素材权利](ASSET_RIGHTS.md)
 
 ## 在本机启动
 
-1. 准备 Node.js 24.x、Windows x64 的 Purism Core 1.1.0 v6 版本和 FFmpeg。FFmpeg 需要支持 FLAC 解码、AAC 编码，及 `libx264` 或 `libx265`。 [运行依赖与构建方法](THIRD_PARTY_NOTICES.md)
-2. 将 [配置模板](local-config.example.json) 复制到源码目录之外，命名为 `editor.local.json`。填入素材目录、独立工作区、Purism Core DLL 和 FFmpeg 可执行文件的路径。相对路径以配置文件所在位置为准。 [素材目录格式](docs/LOCAL_ASSETS.md)
+1. 准备 Node.js 24.x 和 Windows x64 的 Purism Core 1.1.0 v6 版本。需要 MP4 导出时，可构建 Windows 调用程序，或准备支持 FLAC、AAC 和 `libx264` 或 `libx265` 的外置 FFmpeg。 [Windows 导出构建](src/native/BUILD.md) · [第三方依赖](THIRD_PARTY_NOTICES.md)
+2. 将 [配置模板](local-config.example.json) 复制到源码目录之外，命名为 `editor.local.json`。填写素材目录、独立工作区、Purism Core DLL 和已准备的编码器路径。相对路径以配置文件所在位置为准。 [本地配置](docs/LOCAL_ASSETS.md)
 3. 有素材目录和校验清单时，可直接执行下面的启动命令。只想打开空白工程时，先在素材目录中创建 `assets/catalog.json`，写入 `{"version":"local","backgrounds":[],"characters":[],"music":[]}`，再在源码目录运行 `node scripts/index-materials.mjs 'C:/GFSE-local/materials'`。按你的实际路径替换命令中的示例路径。
 
 ```powershell
@@ -31,7 +34,7 @@ npm.cmd ci --ignore-scripts
 node src/server/start.mjs --config 'C:/GFSE-local/editor.local.json'
 ```
 
-终端会打印本机编辑器地址。启动时加 `--no-browser` 可手动打开该地址。配置 `exampleProject` 后，新工作区会显示本地练习工程，并可通过「建立练习副本」另存。
+终端会打印本机编辑器地址。启动时加 `--no-browser` 可手动打开该地址。从「示例作品」可打开四语「对白练习」。「快速上手」可从该练习开始，演示编辑、字幕样式与导出 3 秒 MP4。可用 `exampleProject` 指定本地示例，原对话按文件保留。
 
 ## 验证源码
 

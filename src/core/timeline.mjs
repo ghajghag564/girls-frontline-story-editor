@@ -1,3 +1,4 @@
+import {resolveSubtitleSettings} from './subtitle-settings.mjs';
 /** Pure, time-addressable story and music evaluation, shared by preview/export. */
 import {assertProjectBudget,PROJECT_LIMITS} from './project-budget.mjs';
 import {isSpeakingActor} from './speakers.mjs';
@@ -56,6 +57,7 @@ function mouthRestAt(pauses,elapsed){
 }
 
 export function compileProject(project,{budgetChecked=false}={}){
+ const subtitleSettings=resolveSubtitleSettings(project?.subtitleSettings);
  if(!budgetChecked)assertProjectBudget(project);
  if(project.formatVersion!==1||!Array.isArray(project.scenes))throw new Error('工程格式不兼容');
  const entries=[];const voices=[];let time=0,stage={background:null,actors:[],compositions:{}};
@@ -137,7 +139,7 @@ export function compileProject(project,{budgetChecked=false}={}){
    time+=duration;
   }
  }
- return {entries,voices,duration:time};
+ return {entries,voices,duration:time,subtitleSettings};
 }
 export function voiceGain(voice,time){
  if(time<voice.start)return 0;

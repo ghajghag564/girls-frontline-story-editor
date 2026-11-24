@@ -8,16 +8,17 @@ export const manifestName = 'source-manifest.json';
 
 const rootFiles = new Set([
   '.gitattributes', '.gitignore', 'ASSET_RIGHTS.md', 'AUTHORS', 'LICENSE.md',
-  'LICENSE_SCOPE.md', 'NOTICE', 'README.md', 'README.en.md', 'README.zh-TW.md', 'THIRD_PARTY_NOTICES.md',
+  'LICENSE_SCOPE.md', 'NOTICE', 'README.md', 'README.en.md', 'README.zh-TW.md', 'README.ja.md', 'THIRD_PARTY_NOTICES.md',
   'package.json', 'package-lock.json', 'local-config.example.json', manifestName,
 ]);
 const directories = new Set([
-  'src', 'src/core', 'src/server', 'src/web', 'branding', 'tests', 'scripts',
+  'src', 'src/core', 'src/server', 'src/web', 'src/native', 'branding', 'tests', 'scripts',
   'docs', 'docs/images', '.github', '.github/workflows', 'third-party', 'third-party/purism-core',
 ]);
 const allowedPaths = [
   /^src\/(?:core|server|web)\/[\w-]+\.mjs$/,
   /^src\/web\/(?:index\.html|style\.css)$/,
+  /^src\/native\/(?:media-foundation\.cpp|BUILD\.md)$/,
   /^tests\/[\w-]+\.test\.mjs$/,
   /^scripts\/(?:check|build-manifest|verify-manifest|source-files|index-materials)\.mjs$/,
   /^docs\/[\w-]+\.md$/,

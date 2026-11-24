@@ -1,7 +1,8 @@
+import {t} from './i18n.mjs';
 import {token} from '/bootstrap.mjs';
 import {ModelMeshRenderer} from '/core/model-renderer.mjs';
 import {actorParameters,actorTransform} from '/core/actor-state.mjs';
-async function api(route,body){const response=await fetch('/api'+route,{method:body?'POST':'GET',headers:{'x-gf2-token':token,'content-type':'application/json'},body:body?JSON.stringify(body):undefined});const data=await response.json();if(!response.ok)throw new Error(data.error??'人物计算失败');return data;}
+async function api(route,body){const response=await fetch('/api'+route,{method:body?'POST':'GET',headers:{'x-gf2-token':token,'content-type':'application/json'},body:body?JSON.stringify(body):undefined});const data=await response.json();if(!response.ok)throw new Error(data.error??t("人物计算失败"));return data;}
 export class ActorRenderer {
  constructor(catalog){this.definitions=new Map(catalog.characters.map(x=>[x.id,x]));this.canvas=document.createElement('canvas');this.snapshots=new Map();this.staticImages=new Map();this.draw=this.draw.bind(this);this.draw.prepareFrame=this.prepareFrame.bind(this);this.draw.dispose=()=>this.dispose();}
  async prepareFrame(state,canvas){
@@ -11,7 +12,7 @@ export class ActorRenderer {
   const activeAssets=new Set(state.actors.map(a=>a.assetId));for(const id of this.mesh?.models.keys()??[])if(!activeAssets.has(id))this.mesh.release(id);
   for(const id of this.staticImages.keys())if(!activeAssets.has(id))this.staticImages.delete(id);
   const instances=[];
-  for(const actor of state.actors){const definition=this.definitions.get(actor.assetId);if(!definition)throw new Error('缺少人物素材：'+actor.assetId);
+  for(const actor of state.actors){const definition=this.definitions.get(actor.assetId);if(!definition)throw new Error(t("缺少人物素材：{0}",actor.assetId));
    if(definition.source==='custom'){if(!this.staticImages.has(actor.assetId)){const image=new Image();image.src=definition.imageUrl;await image.decode();this.staticImages.set(actor.assetId,image);}continue;}
    if(!this.mesh.models.has(actor.assetId)){
     const description=await api('/models/'+encodeURIComponent(actor.assetId)),textures=[];
@@ -24,8 +25,8 @@ export class ActorRenderer {
  }
  draw(ctx,actor,{w,h,brightness}){
   const definition=this.definitions.get(actor.assetId);
-  if(definition?.source==='custom'){const image=this.staticImages.get(actor.assetId);if(!image)throw new Error('自定义立绘尚未加载');const [l,t,r,b]=definition.framing.bounds,dh=h*(actor.scale??1)/(b-t),dw=dh*image.width/image.height;ctx.save();try{ctx.globalAlpha=actor.opacity??1;ctx.filter=`brightness(${brightness??1})`;ctx.translate((actor.x??.5)*w,(actor.y??1)*h);ctx.scale(actor.flip?-1:1,1);ctx.drawImage(image,-(l+r)/2*dw,-b*dh,dw,dh);}finally{ctx.restore();}return;}
-  const snapshot=this.snapshots.get(actor.instanceId);if(!snapshot)throw new Error('人物帧缺失');
+  if(definition?.source==='custom'){const image=this.staticImages.get(actor.assetId);if(!image)throw new Error(t("自定义立绘尚未加载"));const [l,t,r,b]=definition.framing.bounds,dh=h*(actor.scale??1)/(b-t),dw=dh*image.width/image.height;ctx.save();try{ctx.globalAlpha=actor.opacity??1;ctx.filter=`brightness(${brightness??1})`;ctx.translate((actor.x??.5)*w,(actor.y??1)*h);ctx.scale(actor.flip?-1:1,1);ctx.drawImage(image,-(l+r)/2*dw,-b*dh,dw,dh);}finally{ctx.restore();}return;}
+  const snapshot=this.snapshots.get(actor.instanceId);if(!snapshot)throw new Error(t("人物帧缺失"));
   const model=this.mesh.models.get(actor.assetId);
   const transform=actorTransform(actor,definition,model.description.canvas,w,h);
   this.mesh.render(actor.assetId,snapshot,{brightness,transform});

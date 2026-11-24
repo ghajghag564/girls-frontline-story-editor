@@ -19,7 +19,42 @@ import {AssetIntegrity} from './asset-integrity.mjs';
 import {AssetRequestBudget} from './asset-request-budget.mjs';
 import {Readable} from 'node:stream';
 import {hasAcceptedNotice,acceptNotice} from './notice-store.mjs';
+import {defaultInterfaceLanguage,isInterfaceLanguage} from '../core/interface-language.mjs';
+import {defaultEditorView,isEditorTheme,isPreviewResolution,readEditorView} from '../core/editor-view.mjs';
 const json=(response,status,data)=>{response.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});response.end(JSON.stringify(data));};
+async function readInterfaceLanguage(files){
+ try{
+  const preferences=JSON.parse(await files.read('userdata/interface-language.json'));
+  if(isInterfaceLanguage(preferences?.language))return preferences.language;
+ }catch(error){
+  if(error.code!=='ENOENT'&&!(error instanceof SyntaxError))console.warn('Could not read interface language preference.');
+ }
+ return defaultInterfaceLanguage;
+}
+
+const editorViewPath='userdata/editor-view.json';
+async function loadEditorView(files){
+ try{return readEditorView(JSON.parse(await files.read(editorViewPath)));}
+ catch(error){
+  if(error.code!=='ENOENT'&&!(error instanceof SyntaxError))console.warn('Could not read editor view preferences.');
+  return defaultEditorView;
+ }
+}
+
+const tutorialPath='userdata/tutorial.json';
+async function readTutorialProgress(files){
+ try{return JSON.parse(await files.read(tutorialPath));}
+ catch(error){if(error.code!=='ENOENT')throw error;return {seen:false,completed:false,step:0};}
+}
+function validateTutorialUpdate(body){
+ const {guide='detail',seen,completed,step,projectId=null}=body??{};
+ if((guide!=='quick'&&guide!=='detail')||typeof seen!=='boolean'||typeof completed!=='boolean'||
+   !Number.isInteger(step)||step<0||step>(guide==='quick'?3:8))throw new Error('教程进度无效');
+ if(guide==='quick'&&projectId!==null&&(typeof projectId!=='string'||!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(projectId)))throw new Error('练习工程编号无效');
+ const progress={seen,completed,step,...(guide==='quick'?{projectId}:{})};
+ return {guide,progress};
+}
+
 async function loadLocalExample(filename,catalog){
  if(!filename)return null;
  const directory=new SafeDirectory(path.dirname(filename));
@@ -39,7 +74,9 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
  const assetIntegrity=new AssetIntegrity(materialsDirectory);await assetIntegrity.initialize();const assetBudget=new AssetRequestBudget();
  const catalog=await loadCatalog(assetIntegrity);
  const example=await loadLocalExample(config.example,catalog);
- let noticeAccepted=await hasAcceptedNotice(files);
+ let noticeAccepted=await hasAcceptedNotice(files),tutorialWrites=Promise.resolve();
+ let interfaceLanguage=await readInterfaceLanguage(files),languageWrites=Promise.resolve();
+ let editorView=await loadEditorView(files),editorViewWrites=Promise.resolve();
  const store=new ProjectStore(await files.resolve('userdata/projects'));await store.initialize();
  const token=randomBytes(32).toString('hex');let origin,catalogBody;
  const models=new ModelService(config);
@@ -63,10 +100,47 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
     if(route==='/api/notice/accept'&&request.method==='POST'){
      const result=await acceptNotice(files,await readJson(request));noticeAccepted=true;return json(response,200,result);
     }
+    if(route==='/api/language'&&request.method==='POST'){
+     const {language}=await readJson(request,1024)??{};
+     if(!isInterfaceLanguage(language))return json(response,400,{error:'界面语言无效'});
+     const write=languageWrites.catch(()=>{}).then(async()=>{
+      await files.atomicWrite('userdata/interface-language.json',JSON.stringify({language}));
+      interfaceLanguage=language;
+     });
+     languageWrites=write;
+     await write;
+     return json(response,200,{language:interfaceLanguage});
+    }
+    if(route==='/api/editor-view'&&request.method==='POST'){
+     const {theme,previewResolution}=await readJson(request,1024)??{};
+     if((theme===undefined&&previewResolution===undefined)
+        ||(theme!==undefined&&!isEditorTheme(theme))
+        ||(previewResolution!==undefined&&!isPreviewResolution(previewResolution))){
+      return json(response,400,{error:'预览或主题设置无效'});
+     }
+     const write=editorViewWrites.catch(()=>{}).then(async()=>{
+      const next={theme:theme??editorView.theme,previewResolution:previewResolution??editorView.previewResolution};
+      await files.atomicWrite(editorViewPath,JSON.stringify(next));
+      editorView=next;
+      return next;
+     });
+     editorViewWrites=write;
+     return json(response,200,await write);
+    }
     if(!noticeAccepted)return json(response,403,{error:'请先阅读并同意本地素材权利声明。'});
-    if(route==='/api/tutorial'&&request.method==='GET'){let state={seen:false,completed:false,step:0};try{state=JSON.parse(await files.read('userdata/tutorial.json'));}catch(e){if(e.code!=='ENOENT')throw e;}return json(response,200,state);}
-    if(route==='/api/tutorial'&&request.method==='POST'){const b=await readJson(request);if(typeof b.seen!=='boolean'||typeof b.completed!=='boolean'||!Number.isInteger(b.step)||b.step<0||b.step>8)throw new Error('教程进度无效');const state={seen:b.seen,completed:b.completed,step:b.step};await files.atomicWrite('userdata/tutorial.json',JSON.stringify(state));return json(response,200,state);}
-    if(route==='/api/capabilities'&&request.method==='GET')return json(response,200,{codecs:exports.codecs});
+    if(route==='/api/tutorial'&&request.method==='GET')return json(response,200,await readTutorialProgress(files));
+    if(route==='/api/tutorial'&&request.method==='POST'){
+     const {guide,progress}=validateTutorialUpdate(await readJson(request));
+     const write=tutorialWrites.catch(()=>{}).then(async()=>{
+      const previous=await readTutorialProgress(files);
+      const state=guide==='quick'?{...previous,guide,quick:progress}:{...previous,...progress,guide};
+      await files.atomicWrite(tutorialPath,JSON.stringify(state));
+      return state;
+     });
+     tutorialWrites=write;
+     return json(response,200,await write);
+    }
+    if(route==='/api/capabilities'&&request.method==='GET')return json(response,200,exports.encoders.capabilities);
     if(route==='/api/example'&&request.method==='GET')return json(response,200,example);
     if(route==='/api/exports'&&request.method==='POST'){const body=await readJson(request,IMAGE_LIMITS.projectBytes);return json(response,202,await exports.create(body.project,body.settings));}
     const exportRoute=route.match(/^\/api\/exports\/([a-f0-9-]+)(?:\/(cancel|frame)(?:\/(\d+))?)?$/);
@@ -112,7 +186,7 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
    }
    if(!['GET','HEAD'].includes(request.method))return json(response,405,{error:'不支持的请求方法'});
    if(route==='/bootstrap.mjs'){
-    response.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'});return response.end(`export const token=${JSON.stringify(token)}; export const release=${JSON.stringify({...release,notesPath:releaseNotesPath})}; export const author=${JSON.stringify(author)}; export const coAuthors=${JSON.stringify(coAuthors)}; export const authorInfoMissing=${JSON.stringify(authorInfoMissing)}; export const noticeAccepted=${JSON.stringify(noticeAccepted)};`);
+    response.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'});return response.end(`export const token=${JSON.stringify(token)}; export const release=${JSON.stringify({...release,notesPath:releaseNotesPath})}; export const author=${JSON.stringify(author)}; export const coAuthors=${JSON.stringify(coAuthors)}; export const authorInfoMissing=${JSON.stringify(authorInfoMissing)}; export const noticeAccepted=${JSON.stringify(noticeAccepted)}; export const interfaceLanguage=${JSON.stringify(interfaceLanguage)}; export const editorView=${JSON.stringify(editorView)};`);
    }
    const exported=route.match(/^\/exports\/([a-f0-9-]+)\.mp4$/);
    if(exported){const job=exports.get(exported[1]);if(job.state!=='completed')return json(response,404,{error:'视频尚未完成'});const file=await files.resolve(job.output);response.writeHead(200,{'Content-Type':'video/mp4','Content-Length':(await fs.stat(file)).size,'Content-Disposition':`attachment; filename="${job.id}.mp4"`});if(request.method==='HEAD')return response.end();await pipeline(createReadStream(file),response);return;}
@@ -133,8 +207,9 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
     relative='assets/'+(thumbnail||item.path);expectedHash=thumbnail?undefined:item.sha256;type=asset[1]==='background'?'image/png':'audio/flac';
    }else{
     const allowed=new Map([['/','src/web/index.html'],['/app.mjs','src/web/app.mjs'],['/music.mjs','src/web/music.mjs'],['/export.mjs','src/web/export.mjs'],['/style.css','src/web/style.css'],['/core/timeline.mjs','src/core/timeline.mjs'],['/core/project.mjs','src/core/project.mjs'],['/core/audio-mixer.mjs','src/core/audio-mixer.mjs'],['/core/stage.mjs','src/core/stage.mjs']]);
-    for(const file of ['project-budget','custom-images','speakers','rights-notice','project-save-queue','model-renderer','actor-state','eye-blink','story-order','story-interface'])allowed.set('/core/'+file+'.mjs','src/core/'+file+'.mjs');
+    for(const file of ['project-budget','custom-images','speakers','rights-notice','project-save-queue','model-renderer','actor-state','eye-blink','story-order','story-interface','subtitle-settings','interface-language','editor-view','example-language','starter-example'])allowed.set('/core/'+file+'.mjs','src/core/'+file+'.mjs');
     for(const file of ['image-import','tutorial','actors','credits'])allowed.set('/'+file+'.mjs','src/web/'+file+'.mjs');
+    for(const file of ['i18n','translations'])allowed.set('/'+file+'.mjs','src/web/'+file+'.mjs');
     relative=allowed.get(route);if(!relative)return json(response,404,{error:'文件不存在'});
     type=relative.endsWith('.png')?'image/png':relative.endsWith('.ttf')?'font/ttf':relative.endsWith('.html')?'text/html; charset=utf-8':relative.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8';
    }

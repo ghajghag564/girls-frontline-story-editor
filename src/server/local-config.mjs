@@ -54,11 +54,15 @@ export async function readLocalConfig(filename, sourceRoot) {
   await materialFiles.checkAncestors(materialsDirectory);
   if (!(await fs.stat(materialsDirectory)).isDirectory()) throw new Error('materialsDirectory 必须是目录');
   await workspaceFiles.checkAncestors(workspaceDirectory);
-  const [purism, ffmpeg] = await Promise.all([
+  const optionalEncoder = (key, label) => settings[key] === undefined
+    ? null
+    : dependency(configPath(key), label, '.exe');
+  const [purism, mediaFoundation, ffmpeg] = await Promise.all([
     dependency(configPath('purismCore'), 'Purism Core', '.dll'),
-    dependency(configPath('ffmpeg'), 'FFmpeg', '.exe')
+    optionalEncoder('mediaFoundation', 'Windows 导出调用程序'),
+    optionalEncoder('ffmpeg', 'FFmpeg'),
   ]);
   const example = settings.exampleProject === undefined ? null : configPath('exampleProject');
   if (example) await regularFile(example, '本地示例工程');
-  return {sourceRoot, materialsDirectory, workspaceDirectory, purism, ffmpeg, example};
+  return {sourceRoot, materialsDirectory, workspaceDirectory, purism, mediaFoundation, ffmpeg, example};
 }

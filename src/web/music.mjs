@@ -1,3 +1,4 @@
+import {t} from './i18n.mjs';
 import {voiceGain,sourceSample} from '../core/timeline.mjs';
 /** Schedules the same sample offsets and gain envelopes evaluated by the export mixer. */
 export class MusicTransport {
@@ -6,8 +7,8 @@ export class MusicTransport {
  async load(id){
   if(this.buffers.has(id)){const b=this.buffers.get(id);this.buffers.delete(id);this.buffers.set(id,b);return b;}
   if(this.loading.has(id))return this.loading.get(id);
-  if(!this.assets.has(id))throw new Error('缺少所选背景音乐');
-  const work=(async()=>{const response=await fetch(`/assets/music/${encodeURIComponent(id)}/full`);if(!response.ok)throw new Error('音乐素材读取失败');const buffer=await this.ensure().decodeAudioData(await response.arrayBuffer());const asset=this.assets.get(id);if(buffer.sampleRate!==48000||buffer.numberOfChannels!==2||Math.abs(buffer.length-asset.samples)>1)throw new Error('音乐解码采样数与目录不符');this.buffers.set(id,buffer);while(this.buffers.size>3)this.buffers.delete(this.buffers.keys().next().value);return buffer;})();
+  if(!this.assets.has(id))throw new Error(t("缺少所选背景音乐"));
+  const work=(async()=>{const response=await fetch(`/assets/music/${encodeURIComponent(id)}/full`);if(!response.ok)throw new Error(t("音乐素材读取失败"));const buffer=await this.ensure().decodeAudioData(await response.arrayBuffer());const asset=this.assets.get(id);if(buffer.sampleRate!==48000||buffer.numberOfChannels!==2||Math.abs(buffer.length-asset.samples)>1)throw new Error(t("音乐解码采样数与目录不符"));this.buffers.set(id,buffer);while(this.buffers.size>3)this.buffers.delete(this.buffers.keys().next().value);return buffer;})();
   this.loading.set(id,work);try{return await work;}finally{this.loading.delete(id);}
  }
  get time(){return this.playing?Math.min(this.compiled.duration,this.position+Math.max(0,this.context.currentTime-this.anchor)):this.position;}

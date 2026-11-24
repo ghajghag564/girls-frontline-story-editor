@@ -2,5 +2,5 @@
   "materialsDirectory": "./materials",
   "workspaceDirectory": "./workspace",
   "purismCore": "./dependencies/PurismCore.dll",
-  "ffmpeg": "./dependencies/ffmpeg.exe"
+  "mediaFoundation": "./dependencies/media-foundation.exe"
 }

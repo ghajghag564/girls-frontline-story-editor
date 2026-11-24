@@ -68,7 +68,11 @@ export function actorParameters(actor, definition, state) {
   const blink = eyeBlinkAt(actor, definition, state.time);
   for (const name of definition.eyeBlink?.parameterIds ?? []) {
     const range = parameters.get(name);
-    if (range && blink < 1) values[name] = clamp((values[name] ?? range.default) * blink, range.min, range.max);
+    if (range && blink < 1) {
+      const open = values[name] ?? range.default;
+      const closed = Math.min(open, clamp(0, range.min, range.max));
+      values[name] = clamp(closed + (open - closed) * blink, range.min, range.max);
+    }
   }
   const mouth = parameters.get('ParamMouthOpenY');
   if (mouth && actor.mouth !== false && (state.mouthSpeaking ?? state.speaking) &&

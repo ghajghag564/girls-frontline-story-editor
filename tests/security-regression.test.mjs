@@ -40,9 +40,12 @@ test('path traversal, absolute paths, alternate streams and Windows device paths
 test('server request limits are finite and allow one 4K frame without increasing JSON limits',()=>{
  assert.equal(JSON_LIMIT,4194304);assert.ok(HTTP_LIMITS.headersTimeout<=10000);assert.ok(HTTP_LIMITS.requestTimeout<=120000);assert.ok(HTTP_LIMITS.maxHeaderSize<=16384);
 });
-test('production export cannot fall back to the old development FFmpeg',async()=>{
- const text=await fs.readFile(new URL('../src/server/export-service.mjs',import.meta.url),'utf8');
- assert.equal(text.includes('imageio_ffmpeg'),false);
- assert.match(text,/'-protocol_whitelist','file','-f','flac'/);
- const guard=text.indexOf('!==asset.sha256'),decode=text.indexOf("this.command(['-hide_banner','-loglevel','error'");assert.ok(guard>=0&&decode>guard);
+test('export uses configured codecs and verifies FLAC before passing it to a decoder',async()=>{
+ const service=await fs.readFile(new URL('../src/server/export-service.mjs',import.meta.url),'utf8');
+ const encoder=await fs.readFile(new URL('../src/server/export-encoder.mjs',import.meta.url),'utf8');
+ assert.doesNotMatch(encoder,/imageio_ffmpeg|runtime\/ffmpeg[.]exe/);
+ assert.match(encoder,/'-protocol_whitelist','file',\s*'-f','flac'/);
+ assert.match(encoder,/checkDependency\(backend\.dependency\)/);
+ const guard=service.indexOf('!==asset.sha256'), decode=service.indexOf('this.encoders.decode(');
+ assert.ok(guard>=0&&decode>guard);
 });
