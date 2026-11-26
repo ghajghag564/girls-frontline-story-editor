@@ -13,6 +13,22 @@ function catalogList(rows, label) {
 
 const fields = (row, keys) => Object.fromEntries(keys.filter(key => Object.hasOwn(row, key)).map(key => [key, row[key]]));
 
+function normalizeDisplayNames(value) {
+  if (!value || typeof value !== 'object') return undefined;
+  const result = {};
+  for (const language of ['zh-TW','en','ja']) {
+    const labels = value[language];
+    if (!labels || typeof labels !== 'object') continue;
+    const clean = {};
+    for (const key of ['name','styleName']) {
+      const text = labels[key];
+      if (typeof text === 'string' && text.trim() && text.length <= 240) clean[key] = text;
+    }
+    if (Object.keys(clean).length) result[language] = clean;
+  }
+  return result;
+}
+
 export function normalizeCatalog(data) {
   if (typeof data?.version !== 'string' || !data.version || data.version.length > 100) {
     throw new Error('本地素材目录缺少有效版本');
@@ -28,7 +44,8 @@ export function normalizeCatalog(data) {
       throw new Error('人物贴图目录无效：' + row.id);
     }
     return {
-      ...fields(row, ['id','name','styleName','aliases','legacySpeakerName','modelPath','sha256','thumbnail']),
+      ...fields(row, ['id','resourceId','name','styleName','aliases','legacySpeakerName','modelPath','sha256','thumbnail']),
+      displayNames:normalizeDisplayNames(row.displayNames),
       framing:row.framing && fields(row.framing, ['bounds']),
       eyeBlink:row.eyeBlink && fields(row.eyeBlink, ['enabled','mean','parameterIds']),
       defaultPlacement:row.defaultPlacement && fields(row.defaultPlacement, ['x','y','scale']),

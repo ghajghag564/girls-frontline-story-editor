@@ -1,6 +1,7 @@
 import {setupCredits,renderNoticeBody,teamCredits} from '/credits.mjs';
 import {IMAGE_LIMITS,cloneProject,withProjectImages} from '/core/custom-images.mjs';
 import {speakerIds,localizeLegacySpeakers,characterDisplayRecord} from '/core/speakers.mjs';
+import {catalogCharacterNames,catalogCharacterSearchText,catalogExpressionName} from '/core/catalog-labels.mjs';
 import {setupImageImport,loadBackgroundImage} from '/image-import.mjs';
 import {setupTutorial} from '/tutorial.mjs';
 import {starterExampleInfo,createStarterExample,localizeStarterExample as localizeExample} from '/core/starter-example.mjs';
@@ -288,7 +289,8 @@ function setBackgroundCrop(crop=defaultBackgroundCrop){
 function actorsForEdit(){line().stage??={};line().stage.actors??=clone(entry()?.stage.actors??[]);return line().stage.actors;}
 function moveActor(id,changes){const ratio=project.exportSettings.ratio,l=line();l.stage??={};l.stage.compositions??=clone(entry()?.stage.compositions??{});l.stage.compositions[ratio]??={};l.stage.compositions[ratio].actors??={};l.stage.compositions[ratio].actors[id]={...l.stage.compositions[ratio].actors[id],...changes};}
 function actorLabel(definition){
- return definition.styleName&&definition.name!==definition.styleName?definition.name+' · '+definition.styleName:definition.name;
+ const {name,styleName}=catalogCharacterNames(definition,interfaceLanguage());
+ return styleName&&name!==styleName?name+' · '+styleName:name;
 }
 function actorCapabilities(definition){
  const parameters=definition.parameters??[],usable=id=>parameters.some(p=>p.id===id&&p.max>p.min);
@@ -304,7 +306,8 @@ function expressionCountNote(definition){if(definition.source==='custom')return 
 function setSpeakers(ids,chorus){
  const l=line(),actors=l.stage?.actors??entry()?.stage.actors??[],active=new Set(actors.map(a=>a.instanceId));ids=[...new Set(ids)].filter(id=>active.has(id));if(!chorus)ids=ids.slice(0,1);
  l.speakerInstanceId=ids[0]??null;if(chorus)l.speakerInstanceIds=ids;else delete l.speakerInstanceIds;
- const names=ids.map(id=>{const a=actors.find(a=>a.instanceId===id);return catalog.characters.find(d=>d.id===a.assetId)?.name??project.customImages?.find(d=>d.id===a.assetId)?.name??t("人物");});if(names.length)l.speaker=[...new Set(names)].join('、').slice(0,200);
+ const names=ids.map(id=>{const a=actors.find(a=>a.instanceId===id),definition=catalog.characters.find(d=>d.id===a.assetId)??project.customImages?.find(d=>d.id===a.assetId);
+  return definition?catalogCharacterNames(definition,interfaceLanguage()).name:t("人物");});if(names.length){const language=interfaceLanguage();l.speaker=[...new Set(names)].join(language==='en'||language==='zh-TW'?', ':'、').slice(0,200);}
 }
 function addActor(definition){
  const actors=actorsForEdit();if(actors.length>=10)throw new Error(t("最多同时添加 10 人"));const a={instanceId:uid(),assetId:definition.id,...defaultActorPlacement(definition),opacity:1,layer:actors.length};actors.push(a);
@@ -327,7 +330,7 @@ function renderActors(){
   if(!definition){box.append(node('p',t("缺少原人物素材，已保留引用。"),'muted'));content.append(box);continue;}
   const capabilities=actorCapabilities(definition);box.append(node('small',expressionCountNote(definition),'capability-note'));
   const expression=node('select');expression.setAttribute('aria-label',t("{0} 模型表情",name));const def=node('option',definition.source==='custom'?t("导入图片（静态）"):t("模型默认姿态"));def.value='';expression.append(def);
-  for(const item of definition.expressions){const option=node('option',item.name);option.title=[item.name,expressionAvailabilityNote(definition,item)].filter(Boolean).join(' · ');option.value=item.id;expression.append(option);}expression.value=actor.expression??'';expression.disabled=!definition.expressions.length;expression.onchange=()=>edit(()=>{const target=actorsForEdit().find(x=>x.instanceId===actor.instanceId);if(expression.value)target.expression=expression.value;else delete target.expression;},{fields:true});box.append(expression);const expressionNote=expressionAvailabilityNote(definition,definition.expressions.find(e=>e.id===actor.expression));if(expressionNote)box.append(node('small',expressionNote,'capability-note'));if(definition.expressions.length){const preview=button(t("查看表情预览"),()=>expressionPicker(actor,definition));preview.dataset.expressionPreview='';box.append(preview);}if(!definition.expressionsComplete)box.append(node('small',t("此造型的模型表情尚未接入。"),'muted'));
+  for(const item of definition.expressions){const name=catalogExpressionName(item,interfaceLanguage()),option=node('option',name);option.title=[name,expressionAvailabilityNote(definition,item)].filter(Boolean).join(' · ');option.value=item.id;expression.append(option);}expression.value=actor.expression??'';expression.disabled=!definition.expressions.length;expression.onchange=()=>edit(()=>{const target=actorsForEdit().find(x=>x.instanceId===actor.instanceId);if(expression.value)target.expression=expression.value;else delete target.expression;},{fields:true});box.append(expression);const expressionNote=expressionAvailabilityNote(definition,definition.expressions.find(e=>e.id===actor.expression));if(expressionNote)box.append(node('small',expressionNote,'capability-note'));if(definition.expressions.length){const preview=button(t("查看表情预览"),()=>expressionPicker(actor,definition));preview.dataset.expressionPreview='';box.append(preview);}if(!definition.expressionsComplete)box.append(node('small',t("此造型的模型表情尚未接入。"),'muted'));
   const placement=node('div',undefined,'actor-positions');for(const [label,x] of defaultStagePositions)placement.append(button(t(label),()=>edit(()=>moveActor(actor.instanceId,{x}),{fields:true})));box.append(placement);
   const composition=entry().stage.compositions?.[project.exportSettings.ratio]?.actors?.[actor.instanceId]??{};
   const vertical=node('div',undefined,'actor-positions');for(const [label,delta] of [[t("上移"),-.03],[t("下移"),.03]]){const control=button(label,()=>edit(()=>moveActor(actor.instanceId,{y:Math.max(-.5,Math.min(2,Math.round(((composition.y??actor.y??1)+delta)*100)/100))}),{fields:true}));control.setAttribute('aria-label',name+' '+label);vertical.append(control);}box.append(vertical);box.append(button(t("恢复默认大小与高度"),()=>edit(()=>{const {y,scale}=defaultActorPlacement(definition);moveActor(actor.instanceId,{y,scale});},{fields:true})));
@@ -359,11 +362,11 @@ function renderActors(){
 let expressionPickerVersion=0;
 async function expressionPicker(actor,definition){
  actor=entry()?.stage.actors.find(x=>x.instanceId===actor.instanceId)??actor;
- const version=++expressionPickerVersion,actorRenderer=new ActorRenderer(catalog);$('expression-title').textContent=t("{0} · 模型表情",definition.name);$('expression-grid').replaceChildren();$('expression-dialog').showModal();
+ const version=++expressionPickerVersion,actorRenderer=new ActorRenderer(catalog);$('expression-title').textContent=t("{0} · 模型表情",catalogCharacterNames(definition,interfaceLanguage()).name);$('expression-grid').replaceChildren();$('expression-dialog').showModal();
  const close=()=>{expressionPickerVersion++;$('expression-dialog').close();};$('close-expressions').onclick=close;$('expression-dialog').oncancel=()=>{expressionPickerVersion++;};
  const options=[{id:'',name:t("模型默认姿态")},...definition.expressions];
  try{for(let i=0;i<options.length;i++){
-  if(version!==expressionPickerVersion)break;const option=options[i],card=node('button',undefined,'expression-card'),canvas=node('canvas');canvas.width=160;canvas.height=180;canvas.setAttribute('aria-label',t("{0}预览",option.name));const note=expressionAvailabilityNote(definition,option);card.title=[option.name,note].filter(Boolean).join(' · ');card.append(canvas,node('span',option.name));if(note)card.append(node('small',note,'capability-note'));card.setAttribute('aria-pressed',String((actor.expression??'')===option.id));
+  if(version!==expressionPickerVersion)break;const option=options[i],name=option.id?catalogExpressionName(option,interfaceLanguage()):option.name,card=node('button',undefined,'expression-card'),canvas=node('canvas');canvas.width=160;canvas.height=180;canvas.setAttribute('aria-label',t("{0}预览",name));const note=expressionAvailabilityNote(definition,option);card.title=[name,note].filter(Boolean).join(' · ');card.append(canvas,node('span',name));if(note)card.append(node('small',note,'capability-note'));card.setAttribute('aria-pressed',String((actor.expression??'')===option.id));
   card.onclick=()=>run(()=>{edit(()=>{const target=actorsForEdit().find(x=>x.instanceId===actor.instanceId);if(!target)throw new Error(t("此人物已不在当前句中"));if(option.id)target.expression=option.id;else delete target.expression;},{fields:true});close();});$('expression-grid').append(card);
   const instance={...actor,expression:option.id||undefined,x:.5,y:2.15,scale:2.15,opacity:1,blink:false,mouth:false,flip:false},state={actors:[instance],time:0,speaking:false,entry:{start:0,transition:0,speed:25,chars:[],line:{}}};
   await actorRenderer.prepareFrame(state,canvas);if(version!==expressionPickerVersion)break;actorRenderer.draw(canvas.getContext('2d'),instance,{w:canvas.width,h:canvas.height,brightness:1});card.dataset.ready='true';$('expression-progress').textContent=t("已显示 {0} / {1} 个表情预览",i+1,options.length);
@@ -504,20 +507,52 @@ async function deleteProject(saved){
 }
 function stopAuditions(){document.querySelectorAll('#asset-dialog audio').forEach(a=>a.pause());}
 function openPicker(type){pause();pickerType=type;pickerGroup=null;$('asset-search').value='';$('asset-title').textContent=type==='background'?t("选择背景"):type==='character'?t("选择人物与造型"):t("选择背景音乐");renderPicker();$('asset-dialog').showModal();$('asset-dialog').scrollTop=0;}
+// Verified default appearances for characters with multiple story outfits.
+const defaultCharacterCoverIds=new Set([
+ 'CHA_Bathilda_SSR_01',
+ 'CHA_Bibi_NPC_01',
+ 'CHA_Charolic_SR_01',
+ 'CHA_Cheyanne_01',
+ 'CHA_Colphne_SR_01',
+ 'CHA_Groza_SR_01',
+ 'CHA_Kuro_02',
+ 'CHA_Lene_SSR_01',
+ 'CHA_Lenna_SSR_02',
+ 'CHA_Levva_SSR_01',
+ 'CHA_Macqiato_SSR_01',
+ 'CHA_Nemesis_SR_01',
+ 'CHA_Sharkry_SR_01',
+ 'CHA_Springfield_SSR_01',
+ 'CHA_Suomi_SSR_01',
+ 'CHA_Vepley_SR_01',
+ 'CHA_Voymastina_SSR_01',
+]);
 function renderPicker(){
- stopAuditions();const query=$('asset-search').value.trim().toLowerCase(),all=pickerType==='background'?catalog.backgrounds:pickerType==='character'?catalog.characters:catalog.music;
- const matches=x=>[x.name,x.styleName,x.id,...(x.aliases??[])].filter(Boolean).join(' ').toLowerCase().includes(query);
+ stopAuditions();const query=$('asset-search').value.trim().normalize('NFKC').toLowerCase(),all=pickerType==='background'?catalog.backgrounds:pickerType==='character'?catalog.characters:catalog.music;
+ const matches=x=>pickerType==='character'?catalogCharacterSearchText(x).includes(query):[x.name,x.styleName,x.id,...(x.aliases??[])].filter(Boolean).join(' ').normalize('NFKC').toLowerCase().includes(query);
  let list=all.filter(matches);
  const showGroups=pickerType==='character'&&pickerGroup===null;
- if(showGroups){const groups=new Map();for(const item of list){if(!groups.has(item.name))groups.set(item.name,{...item,styles:[]});groups.get(item.name).styles.push(item);}list=[...groups.values()];}
+ if(showGroups){
+  const covers=new Map();
+  for(const item of all){
+   if(!covers.has(item.name)||defaultCharacterCoverIds.has(item.id))covers.set(item.name,item);
+  }
+  const groups=new Map();
+  for(const item of list){
+   if(!groups.has(item.name))groups.set(item.name,{...covers.get(item.name),styles:[]});
+   groups.get(item.name).styles.push(item);
+  }
+  list=[...groups.values()];
+ }
  else if(pickerType==='character')list=list.filter(x=>x.name===pickerGroup);
  $('asset-back').hidden=pickerType!=='character'||pickerGroup===null;$('asset-back').onclick=()=>{pickerGroup=null;renderPicker();};
- $('asset-title').textContent=pickerType==='character'?(pickerGroup?t("{0} · 选择造型",pickerGroup):t("选择人物")):pickerType==='background'?t("选择背景"):t("选择背景音乐");$('asset-grid').replaceChildren();$('asset-count').textContent=t("共 {0} 项，已全部列出。{1}",list.length,pickerType==='music'?t("试听音量不改变作品音量。"):t("可按名称或编号搜索。"));
+ $('asset-title').textContent=pickerType==='character'?(pickerGroup?t("{0} · 选择造型",catalogCharacterNames(all.find(item=>item.name===pickerGroup),interfaceLanguage()).name):t("选择人物")):pickerType==='background'?t("选择背景"):t("选择背景音乐");$('asset-grid').replaceChildren();$('asset-count').textContent=t("共 {0} 项，已全部列出。{1}",list.length,pickerType==='music'?t("试听音量不改变作品音量。"):t("可按名称或编号搜索。"));
  const cards=document.createDocumentFragment();for(const item of list){
   const card=node('article',undefined,'asset-card');
   if(pickerType==='background'){const img=node('img');img.loading='lazy';img.src=item.thumbnailUrl??`/assets/background/${item.id}/thumb`;img.alt=item.name;card.append(img);}
-  if(pickerType==='character'){const img=node('img');img.loading='lazy';img.className='character-thumbnail';img.src=item.thumbnailUrl??('/assets/character/'+item.id+'/thumb');img.alt=item.name;card.append(img);}
-  card.append(node('p',pickerType==='character'&&!showGroups?actorLabel(item):item.name));if(showGroups)card.append(node('small',t("{0} 套本地造型",item.styles.length),'muted'));if(pickerType==='character'&&!item.expressionsComplete)card.append(node('small',t("模型表情尚未接入"),'muted'));
+  if(pickerType==='character'){const img=node('img');img.loading='lazy';img.className='character-thumbnail';img.src=item.thumbnailUrl??('/assets/character/'+item.id+'/thumb');img.alt=catalogCharacterNames(item,interfaceLanguage()).name;card.append(img);}
+  const label=pickerType==='character'?(showGroups?catalogCharacterNames(item,interfaceLanguage()).name:actorLabel(item)):item.name;
+  card.append(node('p',label));if(showGroups)card.append(node('small',t("{0} 套本地造型",item.styles.length),'muted'));if(pickerType==='character'&&!item.expressionsComplete)card.append(node('small',t("模型表情尚未接入"),'muted'));
   if(pickerType==='music'){const audio=node('audio');audio.controls=true;audio.preload='none';audio.volume=Number($('monitor-volume').value)/100;audio.src=`/assets/music/${item.id}/full`;audio.onplay=()=>document.querySelectorAll('#asset-dialog audio').forEach(other=>{if(other!==audio)other.pause();});card.append(audio);}
   if(pickerType==='character'&&!showGroups){const support=actorCapabilities(item);card.append(node('small',expressionCountNote(item),'capability-note'));const unavailable=[!support.mouth&&t("无嘴部动态"),!support.blink&&t("无自动眨眼")].filter(Boolean);if(unavailable.length)card.append(node('small',unavailable.join(' · '),'capability-note'));}
   if(showGroups){card.append(button(t("选择造型"),()=>{pickerGroup=item.name;renderPicker();}));cards.append(card);continue;}
@@ -929,6 +964,7 @@ function changeLanguage(value){
   $('play').textContent=transport.playing?t('Ⅱ 暂停'):t('▶ 播放');
   $('hide-text').textContent=hiddenText?t('显示文字'):t('隐藏文字');
   $('preview-ratio').textContent=t('16:9 横屏');
+  if($('asset-dialog').open&&pickerType==='character')renderPicker();
   tutorial?.refreshLocale();
  }
  languageWrites=languageWrites.catch(()=>{}).then(()=>api('/language',{method:'POST',body:{language:value}}));

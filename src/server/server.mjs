@@ -207,7 +207,7 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
     relative='assets/'+(thumbnail||item.path);expectedHash=thumbnail?undefined:item.sha256;type=asset[1]==='background'?'image/png':'audio/flac';
    }else{
     const allowed=new Map([['/','src/web/index.html'],['/app.mjs','src/web/app.mjs'],['/music.mjs','src/web/music.mjs'],['/export.mjs','src/web/export.mjs'],['/style.css','src/web/style.css'],['/core/timeline.mjs','src/core/timeline.mjs'],['/core/project.mjs','src/core/project.mjs'],['/core/audio-mixer.mjs','src/core/audio-mixer.mjs'],['/core/stage.mjs','src/core/stage.mjs']]);
-    for(const file of ['project-budget','custom-images','speakers','rights-notice','project-save-queue','model-renderer','actor-state','eye-blink','story-order','story-interface','subtitle-settings','interface-language','editor-view','example-language','starter-example'])allowed.set('/core/'+file+'.mjs','src/core/'+file+'.mjs');
+    for(const file of ['project-budget','custom-images','speakers','rights-notice','project-save-queue','model-renderer','actor-state','eye-blink','story-order','story-interface','subtitle-settings','interface-language','catalog-labels','editor-view','example-language','starter-example'])allowed.set('/core/'+file+'.mjs','src/core/'+file+'.mjs');
     for(const file of ['image-import','tutorial','actors','credits'])allowed.set('/'+file+'.mjs','src/web/'+file+'.mjs');
     for(const file of ['i18n','translations'])allowed.set('/'+file+'.mjs','src/web/'+file+'.mjs');
     relative=allowed.get(route);if(!relative)return json(response,404,{error:'文件不存在'});

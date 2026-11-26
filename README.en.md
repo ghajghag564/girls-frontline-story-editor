@@ -6,11 +6,13 @@ An unofficial fan-story editor for Girls’ Frontline 2: Exilium. Arrange dialog
 
 The project is independent of the game's operators and rights holders.
 
-**0.1.30 · Windows x64 · Runs locally**
+**0.1.40 · Windows x64 · Runs locally**
+
+Light is the default theme. With local materials configured, the character picker uses verified default outfits as covers and keeps those covers when you search for other outfits.
 
 ![The English editor showing the scene list, stage preview, entry controls, and timeline](docs/images/editor.en.png)
 
-*Screenshot from a live session with an empty media catalog and original sample dialogue.*
+*Screenshot of the Graphite theme with an empty media catalog and original sample dialogue.*
 
 ## What you can do
 

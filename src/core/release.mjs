@@ -1,5 +1,5 @@
 export const release = Object.freeze({
-  version:'0.1.30',
+  version:'0.1.40',
   name:'本地素材源码版',
   changes:'更新剪辑工作台、预览视图和创作须知。',
 });
