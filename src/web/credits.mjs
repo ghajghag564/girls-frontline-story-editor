@@ -1,4 +1,4 @@
-import {t} from './i18n.mjs';
+import { interfaceLanguage, t } from './i18n.mjs';
 // Shared credit presentation for the editor footer, author dialog and rights notice.
 const node=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
 export const collaboratorRole='协作开发';
@@ -48,6 +48,23 @@ function noticeSection(className, titleId, title, ...contents){
 export function renderNoticeBody(container,notice,people){
  const paragraphs=texts=>texts.map(text=>node('p',t(text)));
  const sections=[];
+ if (notice.licenseSummary?.length) {
+  const language = interfaceLanguage();
+  const licenseLink = (locale, label) => {
+   const link = node('a', t(label));
+   link.href = '/license.txt?lang=' + locale;
+   link.target = '_blank';
+   link.rel = 'noopener';
+   return link;
+  };
+  const links = node('p');
+  if (language !== 'en') links.append(licenseLink(language, '阅读完整译文（新标签页）'), ' · ');
+  links.append(licenseLink('en', '阅读完整英文协议（新标签页）'));
+  sections.push(noticeSection(
+   'rights-notice-policy', 'rights-notice-license-title', '软件许可',
+   links, ...paragraphs(notice.licenseSummary)
+  ));
+ }
  if(notice.usePolicy?.length)sections.push(noticeSection(
   'rights-notice-policy','rights-notice-policy-title','使用限制与责任',...paragraphs(notice.usePolicy)));
  sections.push(

@@ -35,8 +35,8 @@
     },
     {
       "path": "LICENSE_SCOPE.md",
-      "bytes": 883,
-      "sha256": "27bd6330f7edf293e9022459eb2661f42798176f6eedfd5212b7512b4c1f3fac"
+      "bytes": 2159,
+      "sha256": "45119ca4eccfef8a05c5e5d39ed1e487d78407eee7761c3da24a3395b01294b7"
     },
     {
       "path": "NOTICE",
@@ -45,23 +45,23 @@
     },
     {
       "path": "README.en.md",
-      "bytes": 5049,
-      "sha256": "d935a3de310f73e72b4121f8a02bf567f9825c9e8ec0b00b2f5eccd706516e51"
+      "bytes": 5057,
+      "sha256": "c3637155909988492833d76e966fa2bea2b1d6cffeae815c31e6921e7536e2f4"
     },
     {
       "path": "README.ja.md",
-      "bytes": 5885,
-      "sha256": "57d3998600728f2296cecf7eb50b8ca9052f3ad6e98fdeca4134ddde6c96fedd"
+      "bytes": 5947,
+      "sha256": "5835bc34a31c0451968887eafadbd21fd73adb38624a4e794ee6db9b23aa02e6"
     },
     {
       "path": "README.md",
-      "bytes": 4414,
-      "sha256": "6694bd61014eea22ca223a0a0183f6f5640d731559016affa1f23fa077306afd"
+      "bytes": 4476,
+      "sha256": "887817341a59cf924d1f93da9128f0f7552d671d06a0b82ed99be1a20ae8df08"
     },
     {
       "path": "README.zh-TW.md",
-      "bytes": 4532,
-      "sha256": "e61cc9fa07201dd6624fc3746fcc686ee7849ba243d10e9270bca1fb317f8d6f"
+      "bytes": 4591,
+      "sha256": "e89273f0c9bd553dac7b6d86997322d0d01847e7c71815ae4e93812b57f91392"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -107,6 +107,21 @@
       "path": "docs/images/editor.zh-TW.png",
       "bytes": 113620,
       "sha256": "e281ae8185d61e717d86a6a71f76a939ac9e2ce1de07f8408f42ac2e156f5304"
+    },
+    {
+      "path": "docs/license-ja.md",
+      "bytes": 5519,
+      "sha256": "1b5540106a8df149c39225ad75811200ce7fb518b7add83cb3ff827e6d509b12"
+    },
+    {
+      "path": "docs/license-zh-CN.md",
+      "bytes": 3614,
+      "sha256": "6d9bda7c5e70c8c435a6ac5db2f640eed47be588a1046763bf18027d073bf6b3"
+    },
+    {
+      "path": "docs/license-zh-TW.md",
+      "bytes": 3629,
+      "sha256": "f92d4b05396b5adce357813d684f9d37da10720daac05c20a57aa3ccc8e0e39e"
     },
     {
       "path": "local-config.example.json",
@@ -220,8 +235,8 @@
     },
     {
       "path": "src/core/rights-notice.mjs",
-      "bytes": 1695,
-      "sha256": "f8a1bb5c5c19e96d797e4a6fa4e28f9213c3f4d548d12543b40958707822f9f1"
+      "bytes": 2718,
+      "sha256": "bfbebd792784a5ce22e56bf9139865995af88ed520af2d0748904d410f1fed47"
     },
     {
       "path": "src/core/speakers.mjs",
@@ -345,8 +360,8 @@
     },
     {
       "path": "src/server/notice-store.mjs",
-      "bytes": 953,
-      "sha256": "f39bad3727558cb37461c18aa92c4f1d5a8c6972c9a490f7d363622a63747434"
+      "bytes": 2018,
+      "sha256": "7352989bc1d5544016c364fb25572061500a36b61ec6cb0a256032d507e06254"
     },
     {
       "path": "src/server/project-store.mjs",
@@ -365,8 +380,8 @@
     },
     {
       "path": "src/server/server.mjs",
-      "bytes": 18780,
-      "sha256": "cd2d8f2d6e9f778f75efe6de16d0bd15f02e83aee4e7d012a728a75d386b7e73"
+      "bytes": 19462,
+      "sha256": "638cfae083e3885b95562d660982f162b76cea74a60762e7161a1562215798c5"
     },
     {
       "path": "src/server/start.mjs",
@@ -385,13 +400,13 @@
     },
     {
       "path": "src/web/app.mjs",
-      "bytes": 81266,
-      "sha256": "b7353fe105142106b9839bacfca4562213bd2d1ef06817e299834757660f6d0a"
+      "bytes": 81303,
+      "sha256": "f23d4d8292423dbdc07022407b6b31a90364b6a2449906c91458f5b6daa03324"
     },
     {
       "path": "src/web/credits.mjs",
-      "bytes": 4430,
-      "sha256": "2a9fba8e24e7eff42fe81db06a25a9e28d0ec2a530e470df2a626d0f0476cf08"
+      "bytes": 5108,
+      "sha256": "b317068c2e284f2c24a690d6064b11fcb2a994c98c5a89e22f0c5fb427a25f34"
     },
     {
       "path": "src/web/export.mjs",
@@ -410,8 +425,8 @@
     },
     {
       "path": "src/web/index.html",
-      "bytes": 22195,
-      "sha256": "b1c70ee61ba5f36ad35aeb2452cf845302d74611a0c71a81dc8e34355b007c53"
+      "bytes": 22353,
+      "sha256": "257bfba03b768ddc1a621f7fc77fb13514f0a88be7ee1a80dd493b7864682cb6"
     },
     {
       "path": "src/web/music.mjs",
@@ -421,12 +436,12 @@
     {
       "path": "src/web/style.css",
       "bytes": 40946,
-      "sha256": "c488d30caf4ccd2ea104e98b82fa962a7e0140a9fd14d91822fc460c60754423"
+      "sha256": "db7180d837f3e72a4b546c3ee7c536a48576403a4f78ff43187dbe529f39a752"
     },
     {
       "path": "src/web/translations.mjs",
-      "bytes": 89716,
-      "sha256": "f3a74ed0f833bcfe92a31a68f7a58b3802daccc36e948b12b389b602382bd084"
+      "bytes": 95136,
+      "sha256": "4923c2e5eab76b7457b75063cf030b5f6a4bb032c1488835fe30cb5187df6328"
     },
     {
       "path": "src/web/tutorial.mjs",
@@ -472,6 +487,11 @@
       "path": "tests/music-transport.test.mjs",
       "bytes": 1731,
       "sha256": "6982ef7314117741d25d357fa9a43a50b169c493d54d704661f583bd6872b9c9"
+    },
+    {
+      "path": "tests/notice-store.test.mjs",
+      "bytes": 2619,
+      "sha256": "1f557018bd5dfefdfc1e9a901978c6e01f54468a4a97ec4e92c653dd5cad01eb"
     },
     {
       "path": "tests/project-save-queue.test.mjs",

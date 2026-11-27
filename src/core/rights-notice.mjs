@@ -1,7 +1,12 @@
-// Author-supplied notice. Keep this text and its readable document in sync.
+// Bump the revision when the terms presented in the creator notice change.
 const notice={
-  "revision": "local-materials-3",
+  "revision": "source-license-1",
   "title": "Girls' Frontline Story Editor 本地素材权利声明",
+  "licenseSummary": [
+    "本项目的原创代码与文档采用 PolyForm Noncommercial 1.0.0，适用条款以英文原文为准。所有非商业用途均获许可。个人学习、实验、私人娱乐等个人用途须无预期商业应用。指定慈善、教育、公共研究等机构的使用按原协议的机构用途条款处理。",
+    "软件的修改、基于软件制作的新作品以及软件副本的再分发，均按协议对应条款办理。向他人提供软件的任何部分时，须附协议原文或其网址，并保留随软件提供的全部 Required Notice 声明。",
+    "用软件承接收费委托，或为创作激励、广告分成、关联打赏等收益而使用软件时，按实际用途、许可条款及另行取得的授权判断。作品发表与收益还涉及其中的玩家原创表达、游戏素材和其他第三方内容，各自按适用权利与授权处理。作品含受许可代码时，代码部分适用软件许可。"
+  ],
   "paragraphs": [
     "Girls' Frontline Story Editor 是非官方同人剧情编辑与播放工具。源代码版的模型、图像、音频和工程由使用者在本机配置。",
     "素材权利归相应权利人。请依照素材的许可和权利人的授权使用本地素材，以及分享使用素材制作的作品。",
@@ -15,5 +20,6 @@ const notice={
   ],
   "closing": "编辑器代码和第三方依赖的许可见源码仓库中的许可说明。"
 };
+Object.freeze(notice.licenseSummary);
 Object.freeze(notice.paragraphs);Object.freeze(notice.usePolicy);
 export const rightsNotice=Object.freeze(notice);

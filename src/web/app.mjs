@@ -882,8 +882,8 @@ function prepareRightsNotice(){
  accept.onclick=async()=>{
   const state=noticeDialogState;if(!state||state.busy||!confirm.checked)return;
   state.busy=true;busy(true);errorText.hidden=true;accept.textContent=t("正在确认…");
-  try{await api('/notice/accept',{method:'POST',body:{revision:rightsNotice.revision,accepted:true}});state.accepted=true;dialog.close();}
-  catch(error){failure(new Error(t("未能记录同意状态：{0} 请重试，或选择“不同意并退出”。",error.message)));}
+  try{await api('/notice/accept',{method:'POST',body:{...session.noticeDisclosures[interfaceLanguage()],accepted:true}});state.accepted=true;dialog.close();}
+  catch(error){failure(new Error(t("未能记录同意状态：{0} 请重试，或选择“不同意并退出”。",translateMessage(error.message))));}
   finally{state.busy=false;busy(false);accept.textContent=t("我已阅读并同意，进入软件");}
  };
  decline.onclick=async()=>{

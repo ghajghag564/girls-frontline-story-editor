@@ -49,7 +49,7 @@ These commands verify the source inventory, check JavaScript syntax, and run the
 
 ## License and credits
 
-This project is provided free of charge as **source-available software under a noncommercial license**. The project's original source is licensed under **PolyForm Noncommercial 1.0.0**. See the license text for permitted uses. The OSI Open Source Definition requires allowing commercial use. [License](LICENSE.md) · [License scope (Chinese)](LICENSE_SCOPE.md) · [OSI Open Source Definition](https://opensource.org/osd)
+This project is provided free of charge as **source-available software under a noncommercial license**. The project's original source is licensed under **PolyForm Noncommercial 1.0.0**. See the license text for permitted uses. The OSI Open Source Definition requires allowing commercial use. [English license](LICENSE.md) · [License scope (Chinese)](LICENSE_SCOPE.md) · [OSI Open Source Definition](https://opensource.org/osd)
 
 The editor reads MOC3 models using Sakura Motion Project's **Purism Core 1.1.0**. The upstream library and the bundled compatibility patch are both licensed under **MIT**. The project has no affiliation with Live2D Inc. [Third-party dependencies (Chinese)](THIRD_PARTY_NOTICES.md) · [Purism Core build notes (Chinese)](docs/PURISM.md)
 

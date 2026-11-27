@@ -49,7 +49,7 @@ node scripts/check.mjs
 
 ## 许可与署名
 
-本项目免费提供，采用**源码可见、非商业许可**。项目原创代码适用 **PolyForm Noncommercial 1.0.0**，具体许可范围以原文为准。OSI 的开源定义要求允许商业用途。 [许可证](LICENSE.md) · [适用范围](LICENSE_SCOPE.md) · [OSI 开源定义](https://opensource.org/osd)
+本项目免费提供，采用**源码可见、非商业许可**。项目原创代码适用 **PolyForm Noncommercial 1.0.0**，具体许可范围以原文为准。OSI 的开源定义要求允许商业用途。 [英文许可原文](LICENSE.md) · [简体中文全文译读](docs/license-zh-CN.md) · [适用范围](LICENSE_SCOPE.md) · [OSI 开源定义](https://opensource.org/osd)
 
 本项目使用 Sakura Motion Project 的 **Purism Core 1.1.0** 读取 MOC3。上游与随附的兼容补丁均采用 **MIT**。本项目与 Live2D Inc. 无隶属关系。 [第三方依赖](THIRD_PARTY_NOTICES.md) · [Purism Core 构建说明](docs/PURISM.md)
 

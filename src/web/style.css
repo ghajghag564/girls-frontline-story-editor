@@ -778,7 +778,7 @@ dialog{color:var(--text);background:var(--panel);border:1px solid var(--control-
   .rights-notice-main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .rights-notice-toc {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0,1fr));
     padding: 6px 8px;
     border-inline-end: 0;
     border-bottom: 1px solid var(--edge);

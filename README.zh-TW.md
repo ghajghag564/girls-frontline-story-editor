@@ -49,7 +49,7 @@ node scripts/check.mjs
 
 ## 授權與署名
 
-本專案免費提供，**可取得原始碼，採非商業授權**。專案原創程式碼採用 **PolyForm Noncommercial 1.0.0**，詳見授權條款原文。OSI 的開放原始碼定義要求允許商業用途。 [授權條款](LICENSE.md) · [適用範圍](LICENSE_SCOPE.md) · [OSI 開放原始碼定義](https://opensource.org/osd)
+本專案免費提供，**可取得原始碼，採非商業授權**。專案原創程式碼採用 **PolyForm Noncommercial 1.0.0**，詳見授權條款原文。OSI 的開放原始碼定義要求允許商業用途。 [英文授權原文](LICENSE.md) · [繁體中文全文譯讀](docs/license-zh-TW.md) · [適用範圍](LICENSE_SCOPE.md) · [OSI 開放原始碼定義](https://opensource.org/osd)
 
 編輯器使用 Sakura Motion Project 的 **Purism Core 1.1.0** 讀取 MOC3 模型。上游函式庫及隨附的相容性修補檔均採 **MIT** 授權。本專案與 Live2D Inc. 無隸屬關係。 [第三方相依元件](THIRD_PARTY_NOTICES.md) · [Purism Core 建置說明](docs/PURISM.md)
 
