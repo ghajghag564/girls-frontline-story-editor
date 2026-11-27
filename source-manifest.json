@@ -25,8 +25,8 @@
     },
     {
       "path": "AUTHORS",
-      "bytes": 296,
-      "sha256": "c1b5235fcd2b05f7104eab720183a62b821d82f53c3dbf4ee14285978fecf3d4"
+      "bytes": 323,
+      "sha256": "3bfe2c5a3e4a5423a15264a10b32c719523d393d2350f4a09b9bf65f132cd6ea"
     },
     {
       "path": "LICENSE.md",
@@ -45,23 +45,23 @@
     },
     {
       "path": "README.en.md",
-      "bytes": 4980,
-      "sha256": "96151b8e5de20b9dd124ae432025b50e542c4f308ed6acedc077b87ac9b2d9e8"
+      "bytes": 5063,
+      "sha256": "4e3f2bbc35ad3a89223a689be5edc285acde8a49d960c1cf66921964a42808a3"
     },
     {
       "path": "README.ja.md",
-      "bytes": 5816,
-      "sha256": "3ffe1baafcd9a7c473f78e2aa565ff2aaf5fdb1faca51c2f881f0cf8ec4a2572"
+      "bytes": 5899,
+      "sha256": "1c3db4d1fe42241194014471fcd28aa307e236b6ff6972fc1dfe30661a8a5427"
     },
     {
       "path": "README.md",
-      "bytes": 4369,
-      "sha256": "d7597225ffc974669bff3351cc2fc778df6c35e983b5a4cd4e73e18ff4f944fd"
+      "bytes": 4452,
+      "sha256": "cb1ca015c4314986267d151d6423dd02c71459f54feb18aa2de13e742ec3360f"
     },
     {
       "path": "README.zh-TW.md",
-      "bytes": 4490,
-      "sha256": "24b24e8839a0d07747cbcbf8f683fe617a55203147981ca4b40fe6ab59cccc68"
+      "bytes": 4573,
+      "sha256": "b973974f731488ea4f68105219789d0cc3f993e747fdcba7b452a42cecf92e21"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -70,8 +70,8 @@
     },
     {
       "path": "branding/author.json",
-      "bytes": 223,
-      "sha256": "4cbed3a8530ab286c0af1ccecf368b40c218f96532464aaabf7a3196004cf87f"
+      "bytes": 255,
+      "sha256": "e769bc2e244417219fc5992b0924914a9f32d6f4a166e17023f4afe963ccf3a0"
     },
     {
       "path": "docs/LOCAL_ASSETS.md",
@@ -280,8 +280,8 @@
     },
     {
       "path": "src/server/author-info.mjs",
-      "bytes": 1044,
-      "sha256": "2febff503419b38f7cfe3fc4eca65ec28df506d69f45d526e43af031cf18de70"
+      "bytes": 1186,
+      "sha256": "26c43c1cdd251a61b12423db28cb59f7a03a25c6a5a22572b65af91292dc877f"
     },
     {
       "path": "src/server/browser-opener.mjs",
@@ -390,8 +390,8 @@
     },
     {
       "path": "src/web/credits.mjs",
-      "bytes": 4286,
-      "sha256": "509d9df5f9a63cd3b742fc75b0d817d243fa8243e84c343a933a7cf1682fa7ae"
+      "bytes": 4636,
+      "sha256": "03f0783a4c653b43a4a2831422ded32b5d81cf47768c473f8d318f9b7a59b561"
     },
     {
       "path": "src/web/export.mjs",

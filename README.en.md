@@ -53,4 +53,4 @@ This project is provided free of charge as **source-available software under a n
 
 The editor reads MOC3 models using Sakura Motion Project's **Purism Core 1.1.0**. The upstream library and the bundled compatibility patch are both licensed under **MIT**. The project has no affiliation with Live2D Inc. [Third-party dependencies (Chinese)](THIRD_PARTY_NOTICES.md) · [Purism Core build notes (Chinese)](docs/PURISM.md)
 
-Created by 章帅瑛, with development contributions from 一只鲍鱼吖. [Credits](AUTHORS) · [Media rights (Chinese)](ASSET_RIGHTS.md)
+Created by 章帅瑛, with development contributions from 一只鲍鱼吖. [章帅瑛 on YouTube @ShuaiYingZhang](https://www.youtube.com/@ShuaiYingZhang) · [Credits](AUTHORS) · [Media rights (Chinese)](ASSET_RIGHTS.md)

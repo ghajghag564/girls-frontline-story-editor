@@ -53,4 +53,4 @@ node scripts/check.mjs
 
 本项目使用 Sakura Motion Project 的 **Purism Core 1.1.0** 读取 MOC3。上游与随附的兼容补丁均采用 **MIT**。本项目与 Live2D Inc. 无隶属关系。 [第三方依赖](THIRD_PARTY_NOTICES.md) · [Purism Core 构建说明](docs/PURISM.md)
 
-软件作者为章帅瑛，协作开发为一只鲍鱼吖。 [作者署名](AUTHORS) · [素材权利](ASSET_RIGHTS.md)
+软件作者为章帅瑛，协作开发为一只鲍鱼吖。 [章帅瑛的 YouTube @ShuaiYingZhang](https://www.youtube.com/@ShuaiYingZhang) · [作者署名](AUTHORS) · [素材权利](ASSET_RIGHTS.md)

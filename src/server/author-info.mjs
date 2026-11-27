@@ -8,7 +8,11 @@ export async function readAuthorInfo(root){
   const input=JSON.parse(await fs.readFile(file,'utf8'));
   const valid=x=>x&&typeof x.name==='string'&&x.name.trim()&&x.name.length<=80&&!/[\x00-\x1f]/.test(x.name)&&typeof x.douyin==='string'&&/^[A-Za-z0-9_.-]{1,30}$/.test(x.douyin)&&typeof x.bilibiliUid==='string'&&/^\d{1,30}$/.test(x.bilibiliUid);
   const co=input?.coAuthors??[];if(!valid(input)||!Array.isArray(co)||co.length>8||!co.every(valid))throw new Error('署名格式无效');
-  const pick=x=>({name:x.name,douyin:x.douyin,bilibiliUid:x.bilibiliUid});
+  const pick=x=>{
+   const person={name:x.name,douyin:x.douyin,bilibiliUid:x.bilibiliUid};
+   if(typeof x.youtube==='string'&&/^@[A-Za-z0-9_.-]{3,30}$/.test(x.youtube))person.youtube=x.youtube;
+   return person;
+  };
   return {author:pick(input),coAuthors:co.map(pick),authorInfoMissing:false};
  }catch{return {author:null,coAuthors:[],authorInfoMissing:true};}
 }
