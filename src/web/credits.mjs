@@ -5,20 +5,19 @@ export const collaboratorRole='协作开发';
 export function teamCredits(author,coAuthors=[]){return [...(author?[{...author,role:t("软件作者")}]:[]),...coAuthors.map(p=>({...p,role:collaboratorRole}))];}
 function contactFields(person,compact=false){
  const fields=[[compact?t("抖音"):t("抖音号"),person.douyin],[t("B站 UID"),person.bilibiliUid]];
- if(person.youtube)fields.push(['YouTube',person.youtube,'https://www.youtube.com/'+person.youtube]);
+ if(person.youtube)fields.push(['YouTube',person.youtube]);
  return fields;
-}
-function contactValue(value,url){
- const handle=node(url?'a':'span',value,'credit-number');
- if(url){handle.href=url;handle.target='_blank';handle.rel='noopener noreferrer';}
- return handle;
 }
 export function renderCreditSummary(container,people){
  container.replaceChildren(...people.map(person=>{
   const group=node('div',undefined,'credit-person'),heading=node('div',undefined,'credit-person-heading');
   heading.append(node('span',t(person.role),'credit-role'),node('strong',person.name,'credit-person-name'));
   const handles=node('div',undefined,'credit-handles');
-  for(const [label,value,url] of contactFields(person,true)){const item=node('span');item.append(node('span',label,'credit-handle-label'),contactValue(value,url));handles.append(item);}
+  for(const [label,value] of contactFields(person,true)){
+   const item=node('span');
+   item.append(node('span',label,'credit-handle-label'),node('span',value,'credit-number'));
+   handles.append(item);
+  }
   group.append(heading,handles);return group;
  }));
 }
@@ -28,9 +27,9 @@ export function creditCards(people,{copy=false}={}){
   const card=node('article',undefined,'credit-card'),head=node('div',undefined,'credit-card-heading');
   head.append(node('span',t(person.role),'credit-role'),node('h3',person.name));card.append(head);
   const fields=node('dl',undefined,'credit-fields'),status=node('p','', 'credit-copy-status');status.setAttribute('aria-live','polite');
-  for(const [label,value,url] of contactFields(person)){
+  for(const [label,value] of contactFields(person)){
    const row=node('div',undefined,'credit-field'),description=node('dd');
-   description.append(contactValue(value,url));
+   description.append(node('span',value,'credit-number'));
    if(copy){const action=node('button',t("复制"),'credit-copy');action.type='button';action.setAttribute('aria-label',t("复制{0}的{1}",person.name,label));action.onclick=async()=>{try{await navigator.clipboard.writeText(value);status.textContent=t("已复制{0}",label);}catch{status.textContent=t("未能复制，请选中号码手动复制。");}};description.append(action);}
    row.append(node('dt',label),description);fields.append(row);
   }

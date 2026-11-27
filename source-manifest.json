@@ -390,8 +390,8 @@
     },
     {
       "path": "src/web/credits.mjs",
-      "bytes": 4636,
-      "sha256": "03f0783a4c653b43a4a2831422ded32b5d81cf47768c473f8d318f9b7a59b561"
+      "bytes": 4430,
+      "sha256": "2a9fba8e24e7eff42fe81db06a25a9e28d0ec2a530e470df2a626d0f0476cf08"
     },
     {
       "path": "src/web/export.mjs",
