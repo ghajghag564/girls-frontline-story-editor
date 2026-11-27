@@ -36,7 +36,7 @@ npm.cmd ci --ignore-scripts
 node src/server/start.mjs --config 'C:/GFSE-local/editor.local.json'
 ```
 
-終端機會顯示本機編輯器網址。啟動時加上 `--no-browser` 即可自行開啟網址。可從「示例作品」開啟四語「對白練習」。「快速上手」可從這份練習開始，示範編輯、字幕樣式及匯出 3 秒 MP4。可用 `exampleProject` 指定本機範例，原對白依檔案保留。
+終端機會分兩段顯示啟動提示和本機編輯器網址, 先中文後英文.啟動時加上 `--no-browser` 即可自行開啟網址。可從「示例作品」開啟四語「對白練習」。「快速上手」可從這份練習開始，示範編輯、字幕樣式及匯出 3 秒 MP4。可用 `exampleProject` 指定本機範例，原對白依檔案保留。
 
 ## 驗證原始碼
 

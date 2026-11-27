@@ -52,15 +52,22 @@ export async function runLauncher(config, {noBrowser = false} = {}) {
       }
     }
   }
-  if (!lock && !previous) throw new Error('此工作目录的其他启动进程尚未完成，请稍后重试');
+  if (!lock && !previous) {
+    throw Object.assign(new Error('此工作目录的其他启动进程尚未完成，请稍后重试。'), {
+      englishMessage:'Another launch in this workspace is in progress. Try again in a moment.',
+    });
+  }
 
   if (lock) {
     try {
       previous = await existing();
       if (!previous) {
         let stopping;
-        const stop = () => stopping ??= app.close().catch(error => {
-          console.error('关闭失败：' + error.message);
+        const stop = () => stopping ??= (async () => {
+          console.log('\n正在关闭编辑器……\n\nClosing the editor...');
+          await app.close();
+        })().catch(error => {
+          console.error('关闭失败。' + error.message + '\n\nShutdown failed. See the details above.');
           process.exitCode = 1;
         });
         app = await startServer(config, {rootId, onShutdown:stop});
@@ -77,11 +84,18 @@ export async function runLauncher(config, {noBrowser = false} = {}) {
   }
 
   const origin = previous?.origin ?? app.origin;
-  console.log("Girls' Frontline Story Editor v" + release.version);
-  console.log('编辑器地址：' + origin);
-  if (previous) console.log('已连接同一工作目录的现有服务。若修改了配置，请先保存并退出旧服务。');
+  const chinese = ['中文', '追放 · 剧情编辑器 v' + release.version, '编辑器地址：' + origin];
+  const english = ['English', "Girls' Frontline Story Editor v" + release.version, 'Editor URL: ' + origin];
+  if (previous) {
+    chinese.push('已连接同一工作目录的现有服务。若修改了配置，请先保存并退出旧服务。');
+    english.push('Connected to the editor running in this workspace. If you changed the configuration, save and exit the existing editor before relaunching.');
+  } else {
+    chinese.push('编辑器已启动，请保持此终端运行。完成后，在“工程”菜单选择“保存并退出”。');
+    english.push('The editor is running. Keep this terminal open. When finished, choose "Save and exit" from the Project menu.');
+  }
+  console.log([...chinese, '', ...english].join('\n'));
   if (!noBrowser) {
-    const failure = () => console.error('浏览器未能自动打开，请复制上方地址打开。');
+    const failure = () => console.error('\n浏览器未能自动打开，请复制上方地址打开。\n\nCould not open the browser automatically. Open the URL above in your browser.');
     try {
       await openSystemBrowser(origin, {onError:failure});
     } catch {

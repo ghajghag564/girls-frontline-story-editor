@@ -45,23 +45,23 @@
     },
     {
       "path": "README.en.md",
-      "bytes": 4980,
-      "sha256": "96151b8e5de20b9dd124ae432025b50e542c4f308ed6acedc077b87ac9b2d9e8"
+      "bytes": 5049,
+      "sha256": "d935a3de310f73e72b4121f8a02bf567f9825c9e8ec0b00b2f5eccd706516e51"
     },
     {
       "path": "README.ja.md",
-      "bytes": 5816,
-      "sha256": "3ffe1baafcd9a7c473f78e2aa565ff2aaf5fdb1faca51c2f881f0cf8ec4a2572"
+      "bytes": 5885,
+      "sha256": "57d3998600728f2296cecf7eb50b8ca9052f3ad6e98fdeca4134ddde6c96fedd"
     },
     {
       "path": "README.md",
-      "bytes": 4369,
-      "sha256": "d7597225ffc974669bff3351cc2fc778df6c35e983b5a4cd4e73e18ff4f944fd"
+      "bytes": 4414,
+      "sha256": "6694bd61014eea22ca223a0a0183f6f5640d731559016affa1f23fa077306afd"
     },
     {
       "path": "README.zh-TW.md",
-      "bytes": 4490,
-      "sha256": "24b24e8839a0d07747cbcbf8f683fe617a55203147981ca4b40fe6ab59cccc68"
+      "bytes": 4532,
+      "sha256": "e61cc9fa07201dd6624fc3746fcc686ee7849ba243d10e9270bca1fb317f8d6f"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -320,8 +320,8 @@
     },
     {
       "path": "src/server/launcher.mjs",
-      "bytes": 3413,
-      "sha256": "1aa44a80996a21801ff82f89b670decf71904ba53b031811c691d6e827164487"
+      "bytes": 4409,
+      "sha256": "ede65eb39a405d3626bfb41aab9c7f71a451a5c755f4789aebfacdd7ac661523"
     },
     {
       "path": "src/server/local-config.mjs",
@@ -370,8 +370,8 @@
     },
     {
       "path": "src/server/start.mjs",
-      "bytes": 1062,
-      "sha256": "0cc6c22e0868e7be72a435111930b2584747d265ed500c62c6cb15098b92d3fb"
+      "bytes": 1476,
+      "sha256": "5f0cfdb3e977ebdd5a05ec28e387c8e9af6b8b86ff9abd5900c395d396f99f80"
     },
     {
       "path": "src/server/windows-system.mjs",

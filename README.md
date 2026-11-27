@@ -36,7 +36,7 @@ npm.cmd ci --ignore-scripts
 node src/server/start.mjs --config 'C:/GFSE-local/editor.local.json'
 ```
 
-终端会打印本机编辑器地址。启动时加 `--no-browser` 可手动打开该地址。从「示例作品」可打开四语「对白练习」。「快速上手」可从该练习开始，演示编辑、字幕样式与导出 3 秒 MP4。可用 `exampleProject` 指定本地示例，原对话按文件保留。
+终端会分两段显示启动提示和本机编辑器地址，先中文后英文。启动时加 `--no-browser` 可手动打开该地址。从「示例作品」可打开四语「对白练习」。「快速上手」可从该练习开始，演示编辑、字幕样式与导出 3 秒 MP4。可用 `exampleProject` 指定本地示例，原对话按文件保留。
 
 ## 验证源码
 

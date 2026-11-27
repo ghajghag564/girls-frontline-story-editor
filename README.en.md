@@ -36,7 +36,7 @@ npm.cmd ci --ignore-scripts
 node src/server/start.mjs --config 'C:/GFSE-local/editor.local.json'
 ```
 
-The terminal prints the local editor URL. Add `--no-browser` if you prefer to open it yourself. Open Dialogue practice from Examples. The built-in sample follows the interface language and can be used for the four-step quick start, including a three-second MP4 export. Set `exampleProject` to use a copy of your own example with its original dialogue.
+The terminal prints the startup messages and local editor URL in two blocks, Chinese first and English second. Add `--no-browser` if you prefer to open it yourself. Open Dialogue practice from Examples. The built-in sample follows the interface language and can be used for the four-step quick start, including a three-second MP4 export. Set `exampleProject` to use a copy of your own example with its original dialogue.
 
 ## Verify the source
 
