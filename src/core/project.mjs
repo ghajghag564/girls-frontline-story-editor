@@ -1,4 +1,4 @@
-import {assertProjectBudget} from './project-budget.mjs';
+import {assertProjectBudget,PROJECT_LIMITS} from './project-budget.mjs';
 import {validateCustomImages,cloneProject,withProjectImages} from './custom-images.mjs';
 import {compileProject,validateExport} from './timeline.mjs';
 const fail=message=>{throw new Error(message)};
@@ -26,7 +26,7 @@ export function validateProject(input){
    if(line.speaker!==undefined)text(line.speaker,'说话人',200);
    if(line.speakerInstanceId!==undefined&&line.speakerInstanceId!==null)id(line.speakerInstanceId,'发言人物');
    if(line.speakerInstanceIds!==undefined){if(!Array.isArray(line.speakerInstanceIds)||line.speakerInstanceIds.length>10||new Set(line.speakerInstanceIds).size!==line.speakerInstanceIds.length)fail('齐声发言人物列表无效');for(const value of line.speakerInstanceIds)id(value,'齐声发言人物');}
-   num(line.charactersPerSecond??25,'文字速度',1,120);num(line.hold??1.5,'停留时间',0,3600);num(line.transition??.25,'转场时间',0,60);
+   num(line.charactersPerSecond??25,'文字速度',1,PROJECT_LIMITS.textSpeed);num(line.hold??1.5,'停留时间',0,3600);num(line.transition??.25,'转场时间',0,60);
    if(line.effects){obj(line.effects,'演出效果');if(line.effects.shake){const shake=obj(line.effects.shake,'画面震动');num(shake.amount,'震动强度',0,.03);num(shake.duration,'震动时长',.01,10);}}
    if(line.stage){
     const s=obj(line.stage,'舞台');

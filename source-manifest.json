@@ -190,8 +190,8 @@
     },
     {
       "path": "src/core/example-language.mjs",
-      "bytes": 3059,
-      "sha256": "0c9df5ce7ed8e7d0c7e9e1005d17ba8d57e92a5a1a4c60b845a0f5217031cbc4"
+      "bytes": 3944,
+      "sha256": "f7d54510f55f945efdb06f8c2235c5c1d9b0e91d123708a6d50df0dcd6d0cf3a"
     },
     {
       "path": "src/core/eye-blink.mjs",
@@ -220,8 +220,8 @@
     },
     {
       "path": "src/core/project-budget.mjs",
-      "bytes": 1110,
-      "sha256": "ee2f87f9119ef35145d601330ff6ab10583dae7225d44b52fc288e725746581c"
+      "bytes": 1124,
+      "sha256": "f123368c72bc81834c54e9c044f2faf53a08eddd44cd2df3323217a309b874a3"
     },
     {
       "path": "src/core/project-save-queue.mjs",
@@ -230,8 +230,8 @@
     },
     {
       "path": "src/core/project.mjs",
-      "bytes": 7093,
-      "sha256": "b3185f2191c464aeac3934f475cd88c21ef37094930f35dd01b1c4554667217e"
+      "bytes": 7129,
+      "sha256": "3212b8fa17ef8ff4f99b38af58de52a4371fe3d4f7e3a323efc8c10f5276104f"
     },
     {
       "path": "src/core/release.mjs",
@@ -255,8 +255,8 @@
     },
     {
       "path": "src/core/starter-example.mjs",
-      "bytes": 3253,
-      "sha256": "03688cfa190d5b277e5cfc33826c1c0426055fa58f64ae600956e4e8d8f7441e"
+      "bytes": 3332,
+      "sha256": "f8038781c8a18b057c33260aea54eee8b3addcd5fb83cfdfa21c2fb226788f84"
     },
     {
       "path": "src/core/story-interface.mjs",
@@ -456,7 +456,7 @@
     {
       "path": "src/web/index.html",
       "bytes": 25598,
-      "sha256": "71358f7feb69a37602dc86ee2ddfd007ba44cb7b08ef7955ec5c78d85aa94be7"
+      "sha256": "9b055d58ff463ddb5a9c0f25abd27a1c84bc2549ac558de8f7b2f17578712a31"
     },
     {
       "path": "src/web/music.mjs",

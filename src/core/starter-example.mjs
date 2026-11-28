@@ -12,7 +12,7 @@ const template={
   formatVersion:1,actorFramingRevision:2,title:info.title,
   scenes:[{id:sceneId,title:'场景一',entries:[{
     id:lineId,kind:'dialogue',speaker:'小林',text:'先看一遍，再换成你的台词。',
-    charactersPerSecond:25,hold:4,transition:0,music:{op:'inherit'},stage:{color:'#253747'},
+    charactersPerSecond:50,hold:4,transition:0,music:{op:'inherit'},stage:{color:'#253747'},
   }]}],
 };
 const stockScene=template.scenes[0],stockLine=stockScene.entries[0];
@@ -22,7 +22,8 @@ const copy={
   speakers:{'小林':['小林','Lin','小林']},
   lines:{[lineId]:['先看一遍，再換成你的台詞。','Watch this once, then replace it with your own line.','まず再生してから、自分のセリフに変えてみましょう。']},
 };
-const localize=createExampleTranslator(template,copy);
+const previousTimings=()=>[{speed:25,hold:4}];
+const localize=createExampleTranslator(template,copy,previousTimings);
 
 export function starterExampleInfo(language) {
   return {
@@ -50,5 +51,5 @@ export function localizeStarterExample(project, language) {
       !known(line.text,stockLine.text,copy.lines[lineId])) return project;
   const legacyTemplate={...template,scenes:[{...stockScene,id:scene.id,entries:[{...stockLine,id:line.id}]}]};
   const legacyCopy={...copy,scenes:{[scene.id]:copy.scenes[sceneId]},lines:{[line.id]:copy.lines[lineId]}};
-  return createExampleTranslator(legacyTemplate,legacyCopy)(project,language);
+  return createExampleTranslator(legacyTemplate,legacyCopy,previousTimings)(project,language);
 }

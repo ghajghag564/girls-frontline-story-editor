@@ -1,4 +1,4 @@
-export const PROJECT_LIMITS=Object.freeze({scenes:200,entries:2000,lineText:4000,totalText:200000,duration:21600});
+export const PROJECT_LIMITS=Object.freeze({scenes:200,entries:2000,lineText:4000,totalText:200000,duration:21600,textSpeed:200});
 // Run before grapheme segmentation, image inflation or cloning a loaded project.
 export function assertProjectBudget(project){
  if(!project||!Array.isArray(project.scenes)||project.scenes.length>PROJECT_LIMITS.scenes)throw new Error('工程场景不得超过200个');
