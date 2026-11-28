@@ -27,12 +27,19 @@ async function audioDuration(file) {
 export async function prepareAudioFile(file) {
   if (!supportedExtension.test(file.name)) throw new Error(t('请选择支持的音频文件。'));
   if (!file.size) throw new Error(t('无法读取此音频，请尝试 MP3 或 WAV 文件。'));
-  const {sampleRate, channels, maxSeconds, maxInputBytes} = LOCAL_AUDIO;
+  const {maxSeconds, maxInputBytes} = LOCAL_AUDIO;
   if (file.size > maxInputBytes) throw new Error(t('音频文件不得超过 {0} MiB。', maxInputBytes / 1024 ** 2));
   const duration = await audioDuration(file);
   if (!Number.isFinite(duration) || duration <= 0) throw new Error(t('无法读取此音频，请尝试 MP3 或 WAV 文件。'));
   if (duration > maxSeconds) throw new Error(t('单段音频不得超过 {0} 分钟。', maxSeconds / 60));
 
+  const decoded = await decodeLocalAudio(file);
+  const name = file.name.replace(supportedExtension, '').replace(/[\x00-\x1f\x7f]/g, '').trim().slice(0, 100).toWellFormed() || t('本地音频');
+  return {name, ...decoded};
+}
+
+export async function decodeLocalAudio(file) {
+  const {sampleRate, channels, maxSeconds} = LOCAL_AUDIO;
   let decoded;
   try {
     const decoder = new OfflineAudioContext(channels, 1, sampleRate);
@@ -49,9 +56,23 @@ export async function prepareAudioFile(file) {
     source.start();
     decoded = await context.startRendering();
   }
-  const name = file.name.replace(supportedExtension, '').replace(/[\x00-\x1f\x7f]/g, '').trim().slice(0, 100).toWellFormed() || t('本地音频');
   const wave = new Blob([encodeLocalWave(decoded)], {type: 'audio/wav'});
-  return {name, wave, seconds: decoded.length / sampleRate};
+  return {wave, seconds: decoded.length / sampleRate};
+}
+
+export async function uploadLocalAudio(name, wave, {videoOnly = false} = {}) {
+  const response = await fetch('/api/local-audio', {
+    method: 'POST',
+    headers: {
+      'x-gf2-token': token, 'content-type': 'audio/wav',
+      'x-gf2-audio-name': encodeURIComponent(name),
+      ...(videoOnly ? {'x-gf2-audio-use': 'video'} : {}),
+    },
+    body: wave,
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error ?? t('音频导入失败。'));
+  return result;
 }
 
 export function setupAudioImport({onPause, onImport}) {
@@ -121,17 +142,7 @@ export function setupAudioImport({onPause, onImport}) {
     updateControls();
     status.textContent = t('正在保存到本地素材库…');
     try {
-      const response = await fetch('/api/local-audio', {
-        method: 'POST',
-        headers: {
-          'x-gf2-token': token, 'content-type': 'audio/wav',
-          'x-gf2-audio-name': encodeURIComponent(prepared.name),
-        },
-        body: prepared.wave,
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? t('音频导入失败。'));
-      onImport(result);
+      onImport(await uploadLocalAudio(prepared.name, prepared.wave));
       dialog.close();
     } catch (error) {
       status.textContent = translateMessage(error.message);

@@ -1,3 +1,5 @@
+import {publicVideo} from './videos.mjs';
+
 function catalogList(rows, label) {
   if (!Array.isArray(rows)) throw new Error(label + '目录必须是数组');
   const ids = new Set();
@@ -95,5 +97,6 @@ export function publicCatalog(catalog) {
     ...character,
     textures:textures.map(display),
   }));
-  return {...catalog, backgrounds:catalog.backgrounds.map(display), music:catalog.music.map(display), characters};
+  return {...catalog, backgrounds:catalog.backgrounds.map(display), music:catalog.music.map(display),
+    characters,videos:(catalog.videos??[]).map(publicVideo)};
 }

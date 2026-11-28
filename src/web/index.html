@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN" data-editor-version="0.1.45" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Girls' Frontline Story Editor</title><link rel="stylesheet" href="/style.css"></head><body>
+<!doctype html><html lang="zh-CN" data-editor-version="0.1.50" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Girls' Frontline Story Editor</title><link rel="stylesheet" href="/fonts.css"><link rel="stylesheet" href="/style.css"></head><body>
 <header class="topbar">
  <div class="brand"><span class="mark" aria-hidden="true">Ⅱ</span><h1>追放 · 剧情编辑器</h1></div>
  <nav class="project-commands" aria-label="工程操作">
@@ -38,7 +38,7 @@
    <details class="toolbar-menu new-entry-menu">
     <summary id="new-entry-toggle">插入条目</summary>
     <div class="menu-panel">
-     <button id="add-narration">＋ 旁白</button><button id="add-pause">＋ 停顿</button><button id="add-black">＋ 黑场</button>
+     <button id="add-narration">＋ 旁白</button><button id="add-pause">＋ 停顿</button><button id="add-black">＋ 黑场</button><button id="add-cutscene">＋ 过场视频</button>
     </div>
    </details>
   </div>
@@ -116,9 +116,17 @@
   </div>
   <div class="inspector-content">
    <section id="entry-panel" role="tabpanel" aria-labelledby="entry-tab" tabindex="0">
-    <div class="entry-fields"><label>条目类型<select id="line-kind"><option value="dialogue">角色台词</option><option value="narration">旁白</option><option value="pause">停顿</option></select></label><label id="speaker-label">显示姓名<input id="speaker" placeholder="可以输入不在画面中的说话人" maxlength="200"></label></div><label>正文<textarea id="line-text" rows="5" placeholder="写下这一句……" aria-describedby="mouth-punctuation-hint"></textarea></label><p id="mouth-punctuation-hint" class="muted" aria-live="polite" hidden></p><details class="asset-section" open><summary>时长与文字显示</summary><label>文字速度（字／秒）<input id="text-speed" type="number" min="1" max="120" step="any" value="25"></label><div class="two-fields"><label>停留（秒）<input id="hold" type="number" min="0" max="3600" step="0.1" value="1.5"></label><label>过渡（秒）<input id="transition" type="number" min="0" max="60" step="0.1" value="0.25"></label></div></details><p id="entry-duration" class="muted"></p>
+    <div class="entry-fields"><label>条目类型<select id="line-kind"><option value="dialogue">角色台词</option><option value="narration">旁白</option><option value="pause">停顿</option><option value="cutscene">过场视频</option></select></label><label id="speaker-label">显示姓名<input id="speaker" placeholder="可以输入不在画面中的说话人" maxlength="200"></label></div>
+    <div id="entry-text-fields"><label>正文<textarea id="line-text" rows="5" placeholder="写下这一句……" aria-describedby="mouth-punctuation-hint"></textarea></label><p id="mouth-punctuation-hint" class="muted" aria-live="polite" hidden></p><details class="asset-section" open><summary>时长与文字显示</summary><label>文字速度（字／秒）<input id="text-speed" type="number" min="1" max="120" step="any" value="25"></label><div class="two-fields"><label>停留（秒）<input id="hold" type="number" min="0" max="3600" step="0.1" value="1.5"></label><label>过渡（秒）<input id="transition" type="number" min="0" max="60" step="0.1" value="0.25"></label></div></details></div>
+    <div id="cutscene-fields" class="asset-section" hidden>
+     <button id="replace-cutscene" class="asset-choice">选择过场视频</button>
+     <label id="cutscene-audio-label" class="compact"><input type="checkbox" id="cutscene-audio">播放视频原声</label>
+    </div>
+    <p id="entry-duration" class="muted"></p>
    </section>
    <section id="background-panel" role="tabpanel" aria-labelledby="background-tab" tabindex="0" hidden>
+    <button id="choose-video-background" class="asset-choice">选择视频背景</button>
+    <p id="video-background-tip" class="muted" hidden>用「插入条目 → 停顿」设置留白时长，背景视频继续播放，人物保持安静。</p>
     <div class="asset-section"><h3>背景</h3><button id="choose-background" class="asset-choice">选择背景</button><button id="import-background" class="image-import-button">导入背景图片（JPG / PNG）</button><div class="row"><button id="inherit-background">继承上句</button><button id="clear-background">纯色画面</button><input id="stage-color" aria-label="纯色画面颜色" type="color" value="#000000"></div><label>场景色调<select id="stage-tint"><option value="">继承上句</option><option value="#ffffff">原素材颜色</option><option value="#f1d7b7">回忆暖色</option></select></label><details><summary>当前画幅取景</summary><button id="restore-background">恢复默认取景</button><label>水平位置<input id="crop-x" type="range" min="0" max="1" step="0.01" value="0.5"></label><label>垂直位置<input id="crop-y" type="range" min="0" max="1" step="0.01" value="0.5"></label><label>背景缩放<input id="crop-scale" type="range" min="1" max="3" step="0.001" value="1"></label></details></div><details class="asset-section"><summary>画面演出</summary><label>画面震动<select id="shake-amount"><option value="0">无</option><option value="0.006">轻微</option><option value="0.012">普通</option><option value="0.025">强烈</option></select></label><label>震动持续（秒）<input id="shake-duration" type="number" min="0.1" max="10" step="0.1" value="0.5"></label><p class="muted">仅作用于这一条的场景画面，文字保持稳定。停顿和黑场可从左侧添加。</p></details>
    </section>
    <section id="actor-panel" role="tabpanel" aria-labelledby="actor-tab" tabindex="0" hidden>
@@ -136,7 +144,7 @@
  <div class="author-details"><span class="credit-person-name">正在读取作者信息…</span></div>
  <div class="credit-actions"><button id="open-rights-notice">创作须知</button><button id="about-author">开发者信息 <span aria-hidden="true">↗</span></button></div>
 </footer>
-<dialog id="author-dialog" aria-labelledby="author-dialog-title"><div class="author-dialog-head"><div><span class="rights-notice-kicker">GIRLS' FRONTLINE STORY EDITOR</span><h2 id="author-dialog-title">开发者信息</h2><p>本编辑器使用本机系统字体。</p></div><button id="close-author" aria-label="关闭开发者信息">关闭</button></div><div id="author-cards"></div><div class="author-dialog-foot"><p id="author-verification"></p><button id="return-from-author">返回编辑</button></div></dialog>
+<dialog id="author-dialog" aria-labelledby="author-dialog-title"><div class="author-dialog-head"><div><span class="rights-notice-kicker">GIRLS' FRONTLINE STORY EDITOR</span><h2 id="author-dialog-title">开发者信息</h2><p>源码版使用系统字体和已配置的本地字体。</p></div><button id="close-author" aria-label="关闭开发者信息">关闭</button></div><div id="author-cards"></div><div class="author-dialog-foot"><p id="author-verification"></p><button id="return-from-author">返回编辑</button></div></dialog>
 <dialog id="rights-notice-dialog" aria-labelledby="rights-notice-title" aria-describedby="rights-notice-subtitle">
  <header class="rights-notice-head">
   <div class="rights-notice-heading">
@@ -182,6 +190,12 @@
 <dialog id="subtitle-dialog" aria-labelledby="subtitle-title">
  <div class="dialog-head"><h2 id="subtitle-title">字幕样式</h2><button data-close="subtitle-dialog">返回编辑</button></div>
  <label>作品字幕模式<select id="subtitle-mode"><option value="game">游戏原版模式</option><option value="theater">小剧场模式</option></select></label>
+ <label>字幕字形<select id="subtitle-font-language">
+  <option value="zh-CN" lang="zh-CN">简体中文</option>
+  <option value="zh-TW" lang="zh-TW">繁體中文</option>
+  <option value="en" lang="en">English</option>
+  <option value="ja" lang="ja">日本語</option>
+ </select></label>
  <div id="subtitle-colors" role="group" aria-label="小剧场字幕配色" hidden>
   <label>角色名<input type="color" id="subtitle-speaker-color"></label>
   <label>台词<input type="color" id="subtitle-text-color"></label>
@@ -198,6 +212,29 @@
  <audio id="audio-import-preview" aria-label="试听音频" controls preload="metadata" hidden></audio>
  <p id="audio-import-status" role="status" class="muted"></p>
  <button id="confirm-audio-import" class="accent" disabled>导入并用于当前句</button>
+</dialog>
+<dialog id="video-library-dialog" aria-labelledby="video-library-title">
+ <div class="dialog-head"><h2 id="video-library-title">选择视频背景</h2><button id="close-video-library" type="button">返回编辑</button></div>
+ <div class="file-button video-library-import">
+  <span>导入本地视频（MP4 / WebM）</span>
+  <div class="video-library-file-control">
+   <button id="choose-video-library-file" type="button" aria-describedby="video-library-file-name">选择视频文件</button>
+   <span id="video-library-file-name" class="muted" role="status">未选择文件</span>
+  </div>
+  <input id="video-library-file" type="file" accept=".mp4,.webm,video/mp4,video/webm" hidden>
+ </div>
+ <p class="muted">单个视频最长 10 分钟、最大 128 MiB。导入后保存在本机素材库。</p>
+ <div class="video-library-layout">
+  <section aria-label="视频素材">
+   <input id="video-library-search" type="search" aria-label="搜索视频" placeholder="搜索视频" hidden>
+   <div id="video-library-list"></div>
+  </section>
+  <div class="video-library-view">
+   <video id="video-library-preview" aria-label="视频预览" controls playsinline preload="auto" hidden></video>
+   <p id="video-library-status" role="status" class="muted"></p>
+   <button id="apply-library-video" class="accent" type="button" disabled>用作背景</button>
+  </div>
+ </div>
 </dialog>
 <dialog aria-labelledby="tutorial-title" id="tutorial-dialog"><div class="dialog-head"><div><p id="tutorial-progress" class="muted"></p><h2 id="tutorial-title">第一次创作</h2></div><button id="tutorial-later">稍后再看</button></div><div class="tutorial-layout"><nav id="tutorial-tabs" aria-label="教程步骤"></nav><section><p id="tutorial-intro"></p><ol id="tutorial-list"></ol><p id="tutorial-tip" class="tutorial-tip"></p><button id="tutorial-action" class="accent">去操作</button><p class="muted" id="tutorial-return-hint">操作提示在舞台下方，可查看本步或继续下一步。</p></section></div><div class="actions tutorial-actions" id="tutorial-footer"><button id="tutorial-prev">上一步</button><button id="tutorial-next">下一步</button></div></dialog>
 <dialog id="message-dialog"><div class="dialog-head"><h2 id="message-title">提示</h2></div><p id="message-text"></p><div id="message-actions" class="actions"></div></dialog><div id="toast" role="status" hidden></div><script type="module" src="/app.mjs"></script></body></html>

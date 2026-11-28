@@ -57,7 +57,7 @@ export class LocalAudioLibrary {
     const metadata = await this.files.resolve(recordPath(id));
     const stat = await fs.stat(metadata);
     if (!stat.isFile() || stat.size > 4096) throw new Error('本地音频格式无效。');
-    const {name, samples} = JSON.parse(await fs.readFile(metadata, 'utf8'));
+    const {name, samples, videoOnly} = JSON.parse(await fs.readFile(metadata, 'utf8'));
     if (!validName(name) || !validLocalAudioSamples(samples)) throw new Error('本地音频格式无效。');
 
     const path = wavePath(id);
@@ -73,13 +73,14 @@ export class LocalAudioLibrary {
     }
     return {
       id, name, samples, path, source: 'local', sha256: id.slice('local_audio_'.length),
-      sampleRate: LOCAL_AUDIO.sampleRate, channels: LOCAL_AUDIO.channels,
+      sampleRate: LOCAL_AUDIO.sampleRate, channels: LOCAL_AUDIO.channels, ...(videoOnly === true ? {videoOnly} : {}),
     };
   }
 
   async import(request) {
     if (this.importing) throw statusError('已有音频正在导入，请稍后再试。', 409);
     const {name, size} = uploadDetails(request);
+    const videoOnly = request.headers['x-gf2-audio-use'] === 'video';
     this.importing = true;
     let staged;
     try {
@@ -109,9 +110,15 @@ export class LocalAudioLibrary {
       const target = await this.files.resolve(wavePath(id));
       // Identical imports reuse the original name. A new upload can repair a missing or damaged WAV.
       const previous = await this.readTrack(id).catch(() => null);
-      if (previous && await fileDigest(target) === sha256) return previous;
+      if (previous && await fileDigest(target) === sha256) {
+        if (videoOnly || !previous.videoOnly) return previous;
+        await this.files.atomicWrite(recordPath(id), JSON.stringify({name: previous.name, samples}));
+        return await this.readTrack(id);
+      }
       await fs.rename(staged, target);
-      await this.files.atomicWrite(recordPath(id), JSON.stringify({name: previous?.name ?? name, samples}));
+      await this.files.atomicWrite(recordPath(id), JSON.stringify({
+        name: previous?.name ?? name, samples, ...(videoOnly && (!previous || previous.videoOnly) ? {videoOnly: true} : {}),
+      }));
       return await this.readTrack(id);
     } catch (error) {
       if (error.code === 'ENOSPC') throw statusError('磁盘空间不足，无法导入音频。', 507);

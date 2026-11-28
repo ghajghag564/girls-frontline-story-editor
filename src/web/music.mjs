@@ -113,7 +113,11 @@ export class MusicTransport {
    const when=this.anchor+storyStart-this.position;
    gain.gain.setValueAtTime(voiceGain(voice,storyStart),when);
    const boundaries=[voice.start+voice.fadeIn,voice.stopAt,voice.stopAt===null?null:voice.stopAt+voice.fadeOut,this.compiled.duration].filter(t=>t!==null&&t>storyStart&&t<=this.compiled.duration).sort((a,b)=>a-b);
-   for(const boundary of [...new Set(boundaries)])gain.gain.linearRampToValueAtTime(voiceGain(voice,boundary),this.anchor+boundary-this.position);
+   for(const boundary of [...new Set(boundaries)]){
+    const at=this.anchor+boundary-this.position;
+    if(boundary===voice.stopAt&&voice.fadeOut===0)gain.gain.setValueAtTime(0,at);
+    else gain.gain.linearRampToValueAtTime(voiceGain(voice,boundary),at);
+   }
    source.start(when,sample/48000);source.stop(this.anchor+end-this.position);
    this.nodes.set(index,{assetId:voice.assetId,source,gain});
    // Keep the scheduled buffer available for another voice or a seek.

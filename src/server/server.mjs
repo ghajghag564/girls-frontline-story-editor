@@ -2,6 +2,8 @@ import {IMAGE_LIMITS} from '../core/custom-images.mjs';
 import {verifyProjectImages} from './custom-images.mjs';
 import {localWaveBytes} from '../core/local-audio.mjs';
 import {LocalAudioLibrary} from './local-audio.mjs';
+import {publicVideo,VideoLibrary} from './videos.mjs';
+import {localFonts} from './local-fonts.mjs';
 import {checkRequestSource,validSessionToken,readJson,HTTP_LIMITS} from './request-security.mjs';
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -25,9 +27,9 @@ import {defaultInterfaceLanguage,isInterfaceLanguage} from '../core/interface-la
 import {defaultEditorView,isEditorTheme,isPreviewResolution,readEditorView} from '../core/editor-view.mjs';
 const json=(response,status,data)=>{response.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});response.end(JSON.stringify(data));};
 const publicTrack = ({path, ...track}) => track;
-const webModules = ['app','music','export','image-import','audio-import','tutorial','actors','credits','i18n','translations'];
+const webModules = ['app','music','export','image-import','audio-import','tutorial','actors','credits','i18n','translations','video-library','video-frames'];
 const coreModules = [
- 'timeline','project','audio-mixer','stage','project-budget','custom-images','local-audio','speakers',
+ 'timeline','project','audio-mixer','stage','project-budget','custom-images','local-audio','speakers','video',
  'rights-notice','project-save-queue','model-renderer','actor-state','eye-blink','story-order',
  'story-interface','subtitle-settings','interface-language','catalog-labels','editor-view',
  'example-language','starter-example',
@@ -42,6 +44,8 @@ const staticMimeTypes = {
  '.html':'text/html; charset=utf-8',
  '.css':'text/css; charset=utf-8',
  '.mjs':'text/javascript; charset=utf-8',
+ '.ttf':'font/ttf',
+ '.woff2':'font/woff2',
 };
 async function readInterfaceLanguage(files){
  try{
@@ -93,8 +97,14 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
  const codeFiles=new SafeDirectory(sourceRoot);
  const files=new SafeDirectory(workspaceDirectory);await files.initialize();
  const assetIntegrity=new AssetIntegrity(materialsDirectory);await assetIntegrity.initialize();const assetBudget=new AssetRequestBudget();
- const catalog=await loadCatalog(assetIntegrity),localAudio=new LocalAudioLibrary(files);
+ const availableFonts=localFonts.filter(({file})=>assetIntegrity.hashes.has('assets/fonts/'+file));
+ const fontRoutes=new Map(availableFonts.map(({file})=>['/fonts/'+file,'assets/fonts/'+file]));
+ const fontStyles=availableFonts.map(({file,family,weight,format})=>
+  `@font-face{font-family:"${family}";src:url("/fonts/${file}") format("${format}");font-weight:${weight};font-display:swap;}`
+ ).join('\n');
+ const catalog=await loadCatalog(assetIntegrity),localAudio=new LocalAudioLibrary(files),videoLibrary=new VideoLibrary(files);
  catalog.music.unshift(...await localAudio.list());
+ catalog.videos=await videoLibrary.list();
  const example=await loadLocalExample(config.example,catalog);
  const {documents:licenseDocuments,disclosures:noticeDisclosures}=await loadNoticeAgreement(codeFiles);
  let noticeAccepted=await hasAcceptedNotice(files,noticeDisclosures),tutorialWrites=Promise.resolve();
@@ -161,6 +171,21 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
       return json(response,201,publicTrack(track));
      }
     }
+    if(route==='/api/videos'&&request.method==='GET'){
+     const videos=catalog.videos.map(publicVideo);
+     if(url.searchParams.get('withAudio')==='1'){
+      const ids=new Set(videos.map(video=>video.audioId).filter(Boolean));
+      return json(response,200,{videos,tracks:catalog.music.filter(track=>ids.has(track.id)).map(publicTrack)});
+     }
+     return json(response,200,videos);
+    }
+    if(route==='/api/local-video'&&request.method==='POST'){
+     const video=await videoLibrary.import(request,catalog.music);
+     const index=catalog.videos.findIndex(item=>item.id===video.id);
+     if(index<0)catalog.videos.unshift(video);else catalog.videos[index]=video;
+     catalogBody=undefined;
+     return json(response,201,publicVideo(video));
+    }
     if(route==='/api/tutorial'&&request.method==='GET')return json(response,200,await readTutorialProgress(files));
     if(route==='/api/tutorial'&&request.method==='POST'){
      const {guide,progress}=validateTutorialUpdate(await readJson(request));
@@ -196,7 +221,7 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
      if(!catalog.characters.some(x=>x.id===modelRoute[1]))return json(response,404,{error:'人物素材不存在'});
      return json(response,200,await models.describe(modelRoute[1]));
     }
-    // Reuse the serialized catalog until a local track is imported.
+    // Reuse the serialized catalog until local media is imported.
     if(route==='/api/catalog'&&request.method==='GET'){catalogBody??=JSON.stringify(publicCatalog(catalog));response.writeHead(200,{'Content-Type':'application/json; charset=utf-8'});return response.end(catalogBody);}
     if(route==='/api/projects'&&request.method==='GET')return json(response,200,await store.list());
     if(route==='/api/projects'&&request.method==='POST')return json(response,201,await store.create(await readJson(request,IMAGE_LIMITS.projectBytes)));
@@ -218,6 +243,19 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
     return json(response,404,{error:'接口不存在'});
    }
    if(!['GET','HEAD'].includes(request.method))return json(response,405,{error:'不支持的请求方法'});
+   const video=route.match(/^\/assets\/video\/(video_[a-z0-9_]{1,94})\/full$/);
+   if(video){
+    const authorized=request.headers['sec-fetch-site']==='same-origin'||validSessionToken(request.headers['x-gf2-token'],token);
+    if(!noticeAccepted||!authorized)return json(response,403,{error:'视频素材读取失败。'});
+    const asset=catalog.videos.find(item=>item.id===video[1]);
+    if(!asset)return json(response,404,{error:'视频素材不存在。'});
+    assetBudget.consume({browser:true});
+    return await videoLibrary.serve(asset,request,response);
+   }
+   if(route==='/fonts.css'){
+    response.writeHead(200,{'Content-Type':'text/css; charset=utf-8'});
+    return response.end(request.method==='HEAD'?undefined:fontStyles);
+   }
    if (route === '/license.txt') {
     const language = url.searchParams.get('lang') ?? 'en';
     const bytes = licenseDocuments.get(language);
@@ -234,7 +272,7 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
    }
    const exported=route.match(/^\/exports\/([a-f0-9-]+)\.mp4$/);
    if(exported){const job=exports.get(exported[1]);if(job.state!=='completed')return json(response,404,{error:'视频尚未完成'});const file=await files.resolve(job.output);response.writeHead(200,{'Content-Type':'video/mp4','Content-Length':(await fs.stat(file)).size,'Content-Disposition':`attachment; filename="${job.id}.mp4"`});if(request.method==='HEAD')return response.end();await pipeline(createReadStream(file),response);return;}
-   let relative=staticFiles.get(route),type,expectedHash,localTrack;
+   let relative=staticFiles.get(route)??fontRoutes.get(route),type,expectedHash,localTrack;
    if(relative){
     type=staticMimeTypes[path.extname(relative)];
    }else{

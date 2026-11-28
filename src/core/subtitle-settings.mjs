@@ -1,3 +1,5 @@
+import {defaultInterfaceLanguage, isInterfaceLanguage} from './interface-language.mjs';
+
 const defaultColors = Object.freeze({ speaker: "#f6be84", text: "#faf3e7", accent: "#eeb67e" });
 
 export function resolveSubtitleSettings(settings) {
@@ -6,6 +8,8 @@ export function resolveSubtitleSettings(settings) {
   }
   const mode = settings === undefined ? "game" : settings.mode;
   if (mode !== "game" && mode !== "theater") throw new Error("字幕模式无效");
+  const fontLanguage = settings?.fontLanguage ?? defaultInterfaceLanguage;
+  if (!isInterfaceLanguage(fontLanguage)) throw new Error("字幕字形无效");
 
   const overrides = settings?.colors;
   if (overrides !== undefined && (!overrides || typeof overrides !== "object" || Array.isArray(overrides))) {
@@ -20,5 +24,5 @@ export function resolveSubtitleSettings(settings) {
     }
     colors[part] = color;
   }
-  return { mode, colors };
+  return { mode, fontLanguage, colors };
 }

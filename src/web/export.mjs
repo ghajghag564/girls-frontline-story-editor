@@ -3,8 +3,9 @@ import {withProjectImages,cloneProject} from '/core/custom-images.mjs';
 import {loadBackgroundImage} from '/image-import.mjs';
 import {token} from '/bootstrap.mjs';
 import {compileProject,validateExport} from '/core/timeline.mjs';
-import {StageRenderer,loadStoryFonts} from '/core/stage.mjs';
+import {StageRenderer} from '/core/stage.mjs';
 import {ActorRenderer} from '/actors.mjs';
+import {VideoFrames} from './video-frames.mjs';
 let current;
 async function api(route,{method='GET',body}={}){const response=await fetch('/api'+route,{method,headers:{'x-gf2-token':token,'content-type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const result=await response.json();if(!response.ok)throw new Error(result.error??t("导出请求失败"));return result;}
 export async function exportCapabilities(){return api('/capabilities');}
@@ -18,9 +19,9 @@ export async function exportVideo(project,settings,onProgress){
   let status=job;onProgress(status);
   while(status.state==='preparing'){control.abort.signal.throwIfAborted();await new Promise(r=>setTimeout(r,300));status=await api('/exports/'+job.id);onProgress(status);}
   if(status.state!=='rendering')throw new Error(status.error??t("导出准备未完成"));
- await loadStoryFonts();const canvas=document.createElement('canvas');canvas.width=options.width;canvas.height=options.height;const catalog=withProjectImages(await api('/catalog'),snapshot);renderer=new StageRenderer(canvas,{imageLoader:id=>loadBackgroundImage(catalog,id),actorRenderer:new ActorRenderer(catalog).draw});
+  const canvas=document.createElement('canvas');canvas.width=options.width;canvas.height=options.height;const catalog=withProjectImages(await api('/catalog'),snapshot);renderer=new StageRenderer(canvas,{imageLoader:id=>loadBackgroundImage(catalog,id),actorRenderer:new ActorRenderer(catalog).draw,videoFrames:new VideoFrames(catalog)});
   for(let index=0;index<options.frames;index++){
-   control.abort.signal.throwIfAborted();await renderer.render(compiled,options.start+index/options.fps,{ratio:options.ratio,watermark:options.watermark});
+   control.abort.signal.throwIfAborted();await renderer.render(compiled,options.start+index/options.fps,{ratio:options.ratio,watermark:options.watermark,signal:control.abort.signal});
    const pixels=renderer.context.getImageData(0,0,options.width,options.height).data;
    const response=await fetch(`/api/exports/${job.id}/frame/${index}`,{method:'POST',headers:{'x-gf2-token':token,'content-type':'application/octet-stream'},body:pixels,signal:control.abort.signal});status=await response.json();if(!response.ok)throw new Error(status.error??t("视频帧传输失败"));onProgress(status);
   }

@@ -44,7 +44,7 @@
   --footer: #191d19;
   --online: #a8bb97;
   --mono: ui-monospace, Consolas, monospace;
-  font-family: "Microsoft YaHei", system-ui, sans-serif;
+  font-family: GF2Editor, "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
@@ -825,9 +825,31 @@ dialog{color:var(--text);background:var(--panel);border:1px solid var(--control-
   .tutorial-practice div { grid-column: 1; grid-row: auto; }
 }
 
-html[lang="zh-TW"] body{font-family:"Microsoft JhengHei UI","Microsoft JhengHei",system-ui,sans-serif}
-html[lang="ja"] body{font-family:"Yu Gothic UI",Meiryo,system-ui,sans-serif}
+html[lang="zh-TW"] body{font-family:Inter,"Source Han Sans TW","Source Han Sans TW VF","Microsoft JhengHei UI","Microsoft JhengHei",system-ui,sans-serif}
+html[lang="en"] body{font-family:Inter,"Inter Variable","Segoe UI",system-ui,sans-serif}
+html[lang="ja"] body{font-family:Inter,"Source Han Sans JP","Source Han Sans JP VF","Yu Gothic UI",Meiryo,system-ui,sans-serif}
 #import-audio { width: 100%; margin: 8px 0; }
 #audio-import-dialog { width: min(92vw, 540px); }
 #audio-import-preview { width: 100%; margin-top: 14px; }
 #audio-import-status { overflow-wrap: anywhere; }
+#choose-video-background { margin: 0 0 10px; }
+#video-background-tip { margin: 0 0 10px; font-size: 12px; line-height: 1.5; }
+#video-library-dialog { width: min(94vw, 900px); }
+.video-library-import { margin: 0; }
+.video-library-file-control { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 8px; }
+.video-library-file-control span { min-width: 0; overflow-wrap: anywhere; }
+.video-library-layout { display: grid; grid-template-columns: minmax(170px, .8fr) minmax(0, 1.4fr); gap: 16px; }
+.video-library-layout > section { min-width: 0; }
+#video-library-search { width: 100%; }
+#video-library-list { display: grid; align-content: start; gap: 5px; max-height: min(44vh, 410px); margin-top: 8px; padding-right: 4px; overflow: auto; }
+.video-library-row { display: grid; gap: 3px; text-align: left; overflow-wrap: anywhere; }
+.video-library-row[aria-pressed="true"] { border-color: var(--accent); background: var(--surface); box-shadow: inset 3px 0 var(--accent); }
+.video-library-row small { color: var(--muted); }
+.video-library-view { display: grid; align-content: start; justify-items: start; }
+#video-library-preview { width: 100%; max-height: 39vh; aspect-ratio: 16 / 9; background: #000; border-radius: 3px; }
+#video-library-status { margin: 8px 0; overflow-wrap: anywhere; }
+@media (max-width: 650px) {
+ .video-library-layout { grid-template-columns: 1fr; }
+ #video-library-list { max-height: 22vh; }
+ #video-library-preview { max-height: 28vh; }
+}

@@ -49,6 +49,21 @@ node scripts/index-materials.mjs 'C:/GFSE-local/materials'
 
 在「音乐 → 导入本地音频」加入的音频经浏览器解码后保存至 `workspaceDirectory` 下的 `userdata/local-audio`。项目文件保存音频引用。跨工作区迁移工程时，需一并迁移相应的本地音频资料。
 
+本地 MP4 或 WebM 可导入为视频背景或过场，单个文件最长 10 分钟、最大 128 MiB。视频保存在 `workspaceDirectory` 下的 `userdata/local-video`，可读取的原声保存在 `userdata/local-audio`。跨工作区迁移工程时，一并迁移引用的文件。
+
+## 可选字体
+
+系统字体可直接使用。想采用玩家版同款字体时，把有权使用的原版文件放到素材目录的 `assets/fonts`，重新运行 `scripts/index-materials.mjs` 后重启编辑器。字体文件名按下表放置。
+
+| 字体 | 文件名 |
+| --- | --- |
+| HarmonyOS Sans SC Medium、Bold | `story-medium.ttf` 和 `story-bold.ttf` |
+| Inter 4.1 | `InterVariable.woff2` |
+| 思源黑体台湾版 2.005R | `SourceHanSansTW-VF.ttf.woff2` |
+| 思源黑体日本版 2.005R | `SourceHanSansJP-VF.ttf.woff2` |
+
+「字幕样式 → 字幕字形」会将选择写入工程。字体按各自的许可使用。[第三方依赖与许可](../THIRD_PARTY_NOTICES.md)
+
 ## 人物与表情显示名
 
 人物与造型可在本地素材清单的 characters 各项中提供 displayNames 对象。使用 zh-TW、en 或 ja 作为键，每种语言可设置 name 和 styleName。未填写的字段使用清单中的原名，简体中文读取原名。搜索支持原名、译名和素材 ID。模型表情使用编辑器提供的通用译名，工程保存的素材 ID 和手写发言名按原值读取。

@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import {SafeDirectory} from '../src/server/safe-files.mjs';
 import {normalizeCatalog} from '../src/server/catalog.mjs';
 import {fileDigest} from '../src/server/file-hash.mjs';
+import {localFonts} from '../src/server/local-fonts.mjs';
 
 const [directory] = process.argv.slice(2);
 if (!directory) throw new Error('用法  node scripts/index-materials.mjs <本地素材根目录>');
@@ -29,6 +30,12 @@ for (const item of catalog.characters) {
   add(item.modelPath,'.moc3',item.sha256);
   if (item.thumbnail) add(item.thumbnail,'.png');
   for (const texture of item.textures) add(texture.path,'.png',texture.sha256);
+}
+for (const {file,format} of localFonts) {
+  const relative='fonts/'+file;
+  try { await fs.stat(await files.resolve('assets/'+relative)); }
+  catch (error) { if (error.code==='ENOENT') continue; throw error; }
+  add(relative,format==='woff2'?'.woff2':'.ttf');
 }
 if (references.size > 20000) throw new Error('素材校验清单最多容纳 20000 个文件');
 

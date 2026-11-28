@@ -1,6 +1,6 @@
 {
   "name": "girls-frontline-story-editor-source",
-  "version": "0.1.45",
+  "version": "0.1.50",
   "private": true,
   "description": "Locally runnable source for Girls' Frontline Story Editor",
   "type": "module",

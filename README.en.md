@@ -6,7 +6,7 @@ An unofficial fan-story editor for Girls’ Frontline 2: Exilium. Arrange dialog
 
 The project is independent of the game's operators and rights holders.
 
-**0.1.45 · Windows x64 · Runs locally**
+**0.1.50 · Windows x64 · Runs locally**
 
 Use Music → Import local audio to preview a file and apply it to the current line for playback and MP4 export. Imported audio stays in your local workspace.
 
@@ -20,11 +20,12 @@ Light is the default theme. With local materials configured, the character picke
 
 ## What you can do
 
-- **Interface languages.** Use the top bar to switch between Simplified Chinese, Traditional Chinese, English and Japanese. The editor uses system fonts.
+- **Interface languages.** Use the top bar to switch between Simplified Chinese, Traditional Chinese, English and Japanese. Use system fonts or supply local font files. [Font setup (Chinese)](docs/LOCAL_ASSETS.md#可选字体)
 - **Themes and stage navigation.** Choose Graphite or Light from the top bar. Set preview quality separately, scroll to zoom, hold the middle mouse button to pan, and select Reset to recenter the full frame.
 - **Build a story.** Organize scenes and entries, and adjust text speed, hold times, and transitions.
 - **Preview the staging.** Use local models, textures, backgrounds, and music. Scrub the timeline to check character placement, expressions, and audio timing.
-- **Switch subtitle styles.** Choose the game-style layout or large theater subtitles for the whole project. The theater style has separate colors for the name, dialogue, and accent line. Preview and MP4 use the same selection.
+- **Import local video.** Use a browser-compatible MP4 or WebM as a silent looping background or a cutscene. Insert a Pause entry when the background should continue without dialogue.
+- **Switch subtitle styles.** Choose the game-style layout or large theater subtitles for the whole project. The theater style has separate colors for the name, dialogue, and accent line. The project saves the subtitle typeface for preview and MP4 export.
 - **Save and export.** Save projects locally and export 16:9 MP4. The configured Windows helper is preferred for H.264 + AAC. H.265 depends on the device. External FFmpeg is available as a fallback.
 
 The repository is limited to the editor source, tests, configuration templates, documentation, an editor screenshot, and a separately licensed compatibility patch. You supply and configure your own models, images, audio, and any local example project. Game media is subject to its rights holders' terms. [Source and feature scope (Chinese)](docs/SOURCE_SCOPE.md) · [Media rights (Chinese)](ASSET_RIGHTS.md)

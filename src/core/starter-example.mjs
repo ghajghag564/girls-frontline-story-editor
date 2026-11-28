@@ -1,4 +1,5 @@
 import {createExampleTranslator,exampleText} from './example-language.mjs';
+import {defaultInterfaceLanguage,isInterfaceLanguage} from './interface-language.mjs';
 
 const info={
   title:'对白练习',
@@ -31,7 +32,8 @@ export function starterExampleInfo(language) {
 }
 
 export function createStarterExample(catalogVersion, language) {
-  return localize({...structuredClone(template),catalogVersion},language);
+  const fontLanguage=isInterfaceLanguage(language)?language:defaultInterfaceLanguage;
+  return localize({...structuredClone(template),catalogVersion,subtitleSettings:{mode:'game',fontLanguage}},language);
 }
 
 export function localizeStarterExample(project, language) {

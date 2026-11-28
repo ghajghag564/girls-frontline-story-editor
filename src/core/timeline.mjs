@@ -2,6 +2,8 @@ import {resolveSubtitleSettings} from './subtitle-settings.mjs';
 /** Pure, time-addressable story and music evaluation, shared by preview/export. */
 import {assertProjectBudget,PROJECT_LIMITS} from './project-budget.mjs';
 import {isSpeakingActor} from './speakers.mjs';
+import {cutsceneVideo} from './video.mjs';
+
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const finite=(x,label,min=0)=>{if(!Number.isFinite(x)||x<min)throw new Error(`${label}无效`);return x};
 // The supplied NPC recording shows a roughly 0.2 s linear highlight handover.
@@ -66,8 +68,17 @@ export function compileProject(project,{budgetChecked=false}={}){
   if(!Array.isArray(scene.entries))throw new Error('场景缺少顺序条目');
   for(const line of scene.entries){
    if(!line.id||ids.has(line.id))throw new Error('条目标识重复或缺失');ids.add(line.id);
-   if(!['dialogue','narration','pause'].includes(line.kind))throw new Error('不支持的演出条目');
    if(typeof line.text!=='string')throw new Error('正文必须是文字');
+   if(line.kind==='cutscene'){
+    const video=cutsceneVideo(line.video),end=time+video.seconds;
+    if(end>PROJECT_LIMITS.duration)throw new Error('工程总时长不得超过6小时');
+    entries.push({sceneId:scene.id,line:structuredClone(line),video,start:time,end,transition:0,previous:stage,stage});
+    if(video.audioId)voices.push({assetId:video.audioId,start:time,offset:0,volume:1,fadeIn:0,
+     loop:false,stopAt:end,stopGain:1,fadeOut:0,cutscene:true});
+    time=end;
+    continue;
+   }
+   if(!['dialogue','narration','pause'].includes(line.kind))throw new Error('不支持的演出条目');
    const chars=graphemes(line.text),speed=finite(line.charactersPerSecond??25,'文字速度',1);
    const transition=finite(line.transition??.25,'过渡时长'),hold=finite(line.hold??1.5,'停留时长');
    const duration=transition+(line.kind==='pause'?0:chars.length/speed)+hold;
@@ -113,7 +124,7 @@ export function compileProject(project,{budgetChecked=false}={}){
    if(music.op!=='inherit'){
     const fadeOut=finite(music.fadeOut??.5,'音乐淡出');
     for(const voice of voices){
-     if(voice.stopAt!==null&&voice.stopAt+voice.fadeOut<=time)continue;
+     if(voice.cutscene||(voice.stopAt!==null&&voice.stopAt+voice.fadeOut<=time))continue;
      const gain=voiceGain(voice,time);
      voice.stopAt=time;voice.stopGain=gain;voice.fadeOut=fadeOut;
     }
@@ -191,6 +202,8 @@ export function stateAt(compiled,time,ratio='16:9'){
   else first=middle+1;
  }
  const entry=compiled.entries[first];
+ if(entry.video)return {time,sceneId:entry.sceneId,lineId:entry.line.id,kind:'cutscene',
+  video:entry.video,videoElapsed:time-entry.start,actors:[],complete:true,entry};
  const progress=entry.transition===0?1:clamp((time-entry.start)/entry.transition);
  const previous=entry.previous.actors.map(a=>actorLayout(a,ratio,entry.previous.compositions));
  const next=entry.stage.actors.map(a=>actorLayout(a,ratio,entry.stage.compositions));

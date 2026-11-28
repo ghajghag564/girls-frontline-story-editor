@@ -62,9 +62,19 @@ export function validateProject(input){
 export function missingResources(project,catalog){
  catalog=withProjectImages(catalog,project);
  const missing=new Map();const available=new Map();
- for(const [kind,list] of Object.entries({background:catalog.backgrounds??[],actor:catalog.characters??[],music:catalog.music??[]}))for(const item of list)available.set(kind+':'+item.id,item);
+ const videos=catalog.videos??[];
+ for(const [kind,list] of Object.entries({background:[...(catalog.backgrounds??[]),...videos],video:videos,actor:catalog.characters??[],music:catalog.music??[]}))for(const item of list)available.set(kind+':'+item.id,item);
  const check=(kind,assetId,lineId)=>{if(assetId&&!available.has(kind+':'+assetId)){const excluded=kind==='background'?catalog.unavailableBackgrounds?.find(x=>x.id===assetId):null;missing.set(kind+':'+assetId,{kind,assetId,lineId,...(excluded?{name:excluded.name,reason:excluded.reason}: {})});}};
  for(const scene of project.scenes)for(const line of scene.entries){
+  if(line.kind==='cutscene'){
+   const clip=line.video,material=available.get('video:'+clip.assetId);
+   check('video',clip.assetId,line.id);
+   if(material&&(Math.abs(material.seconds-clip.seconds)>.05||clip.audioId&&clip.audioId!==material.audioId)){
+    missing.set('video:'+clip.assetId,{kind:'video',assetId:clip.assetId,lineId:line.id,name:material.name,reason:'视频记录已变更，请重新选择素材。'});
+   }
+   check('music',clip.audioId,line.id);
+   continue;
+  }
   check('background',line.stage?.background,line.id);check('music',line.music?.assetId,line.id);
   for(const actor of line.stage?.actors??[]){check('actor',actor.assetId,line.id);const definition=available.get('actor:'+actor.assetId);if(actor.expression&&definition&&!definition.expressions?.some(e=>e.id===actor.expression))missing.set('expression:'+actor.expression,{kind:'expression',assetId:actor.expression,lineId:line.id});}
  }
