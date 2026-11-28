@@ -827,4 +827,7 @@ dialog{color:var(--text);background:var(--panel);border:1px solid var(--control-
 
 html[lang="zh-TW"] body{font-family:"Microsoft JhengHei UI","Microsoft JhengHei",system-ui,sans-serif}
 html[lang="ja"] body{font-family:"Yu Gothic UI",Meiryo,system-ui,sans-serif}
-
+#import-audio { width: 100%; margin: 8px 0; }
+#audio-import-dialog { width: min(92vw, 540px); }
+#audio-import-preview { width: 100%; margin-top: 14px; }
+#audio-import-status { overflow-wrap: anywhere; }

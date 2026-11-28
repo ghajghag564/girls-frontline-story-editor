@@ -8,6 +8,7 @@ export async function exportSpacePlan(files,compiled,settings,catalog){
  for(const id of new Set(relevant.map(v=>v.assetId))){
   const asset=assets.get(id);if(!asset)throw new Error('缺少背景音乐');
   const bytes=asset.samples*8;if(!Number.isSafeInteger(bytes)||bytes<=0)throw new Error('音乐采样数量无效');
+  if(asset.source==='local')continue; // Imported WAV files already contain ready-to-mix PCM.
   let ready=false;try{const stat=await fs.stat(await files.resolve(pcmPath(asset)));ready=stat.isFile()&&stat.size===bytes;}catch(error){if(error.code!=='ENOENT')throw error;}
   if(!ready)sourceCacheBytes+=bytes;
  }

@@ -2,7 +2,7 @@ import {sourceSample,voiceGain} from './timeline.mjs';
 export const MIX_RATE=48000;
 /** Bounded stereo mixing. Reader returns interleaved Float32 source samples. */
 export async function mixBlock(compiled,assets,startTime,frames,read){
- if(!Number.isFinite(startTime)||startTime<0||!Number.isSafeInteger(frames)||frames<0||frames>48000)throw new Error('混音区间无效');
+ if(!Number.isFinite(startTime)||startTime<0||!Number.isSafeInteger(frames)||frames<0||frames>MIX_RATE)throw new Error('混音区间无效');
  const output=new Float32Array(frames*2);
  for(const voice of compiled.voices){
   if(voice.start>=startTime+frames/MIX_RATE)continue;
@@ -15,7 +15,8 @@ export async function mixBlock(compiled,assets,startTime,frames,read){
    const time=startTime+i/MIX_RATE;
    if(time<voice.start){i++;continue;}
    const source=sourceSample(voice,time,asset);
-   if(source===null){i++;continue;}
+   // Once a one-shot track ends, later samples in this block are silent.
+   if(source===null)break;
    const begin=i;
    i++;
    while(i<frames&&sourceSample(voice,startTime+i/MIX_RATE,asset)===source+i-begin)i++;

@@ -6,7 +6,11 @@ An unofficial fan-story editor for Girls’ Frontline 2: Exilium. Arrange dialog
 
 The project is independent of the game's operators and rights holders.
 
-**0.1.40 · Windows x64 · Runs locally**
+**0.1.45 · Windows x64 · Runs locally**
+
+Use Music → Import local audio to preview a file and apply it to the current line for playback and MP4 export. Imported audio stays in your local workspace.
+
+The preview cache uses decoded audio size and frees the largest idle tracks first. The Creator Notice explains the source edition’s license in plain language.
 
 Light is the default theme. With local materials configured, the character picker uses verified default outfits as covers and keeps those covers when you search for other outfits.
 

@@ -47,6 +47,8 @@ node scripts/index-materials.mjs 'C:/GFSE-local/materials'
 
 编辑器支持从界面导入 JPG 或 PNG 作为静态人物和背景。目录中的模型通过贴图槽编号关联 PNG。工程会保存背景取景，以及人物的站位和大小。
 
+在「音乐 → 导入本地音频」加入的音频经浏览器解码后保存至 `workspaceDirectory` 下的 `userdata/local-audio`。项目文件保存音频引用。跨工作区迁移工程时，需一并迁移相应的本地音频资料。
+
 ## 人物与表情显示名
 
 人物与造型可在本地素材清单的 characters 各项中提供 displayNames 对象。使用 zh-TW、en 或 ja 作为键，每种语言可设置 name 和 styleName。未填写的字段使用清单中的原名，简体中文读取原名。搜索支持原名、译名和素材 ID。模型表情使用编辑器提供的通用译名，工程保存的素材 ID 和手写发言名按原值读取。

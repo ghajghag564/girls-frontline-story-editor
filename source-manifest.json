@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "version": "0.1.40",
+  "version": "0.1.45",
   "completeApplicationSource": true,
   "files": [
     {
@@ -45,23 +45,23 @@
     },
     {
       "path": "README.en.md",
-      "bytes": 5222,
-      "sha256": "2255ecd66531bbc468147e5bd39fdeb9af32b6da73b006518e5ec0f013614385"
+      "bytes": 5544,
+      "sha256": "08095c818edb308d257c3b9305163087c6276a4055ab021eee00278d093cb4f0"
     },
     {
       "path": "README.ja.md",
-      "bytes": 6051,
-      "sha256": "af035223fa2ffef3741fd907397665b16f988f4792d52be8d7b89816e8bb0764"
+      "bytes": 6545,
+      "sha256": "2f902203ba05c87dcb008e79d1572a7581f5b5c665c7b7ff04a6a7eed17f82cf"
     },
     {
       "path": "README.md",
-      "bytes": 4577,
-      "sha256": "c9063c3f151c168ec4733a880b924d278df17744ed352994b65a379c131a49bb"
+      "bytes": 4873,
+      "sha256": "b441a4e83c9a6a48cc8c58f956bcf0c0e406137a741b0d4959fca517813ff415"
     },
     {
       "path": "README.zh-TW.md",
-      "bytes": 4692,
-      "sha256": "37767e8533ceb7b27e72756128f6f682121b010f549e8ef29994045126c19e35"
+      "bytes": 4997,
+      "sha256": "ce2987cd43ac0b739bcba4e2ca1709a7082e055d067b86613754d20dd602f0b0"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -75,8 +75,8 @@
     },
     {
       "path": "docs/LOCAL_ASSETS.md",
-      "bytes": 3614,
-      "sha256": "d075ef08984c49ef2f0d2a6b8dd8f86ee9575dfc4d74562b29bfd35d56596fc8"
+      "bytes": 3861,
+      "sha256": "43449ce54ce6ba9971922aa32bfc3fb1ed18e2f6d3734a31c6c7d612e9440d01"
     },
     {
       "path": "docs/PURISM.md",
@@ -85,8 +85,8 @@
     },
     {
       "path": "docs/SOURCE_SCOPE.md",
-      "bytes": 1661,
-      "sha256": "9f6f3600aab817077eb54847733fba4c0d27c640d3e5a121f985cc81e9474eac"
+      "bytes": 1813,
+      "sha256": "688ad085afdc35b0318d300c795b8e8cfa3c7dc170f3617bb7c406353f789b7e"
     },
     {
       "path": "docs/images/editor.en.png",
@@ -131,12 +131,12 @@
     {
       "path": "package-lock.json",
       "bytes": 11898,
-      "sha256": "ad41944343b65ab53ff2c10bf8c824baa9e7eb6f21c59eb87fb2d0d8b5ecde8f"
+      "sha256": "b9e9fa535010ced20c289ce788be4c799cc4b74fc29242c89dfad878e6c0e9fa"
     },
     {
       "path": "package.json",
       "bytes": 562,
-      "sha256": "166f1b58b1c46d230b63a493a309a640a89bd1244f55dc736136202b5d4e5e5b"
+      "sha256": "55f4fe58af3e283b10d390be8a8aa8c229eea78f73a0ac4878785407a07828c2"
     },
     {
       "path": "scripts/build-manifest.mjs",
@@ -170,8 +170,8 @@
     },
     {
       "path": "src/core/audio-mixer.mjs",
-      "bytes": 2285,
-      "sha256": "f540ed5cedf3d588824f759bccc56bdbe5408b4eafa106b5b4381070ceae636a"
+      "bytes": 2354,
+      "sha256": "c167531f69f7b99a9c33920e1324440bf612d466b47a80cddc40f70aace1966a"
     },
     {
       "path": "src/core/catalog-labels.mjs",
@@ -209,6 +209,11 @@
       "sha256": "a64ab8c40ee69a1df524e89700fffe2a5c607dac597316d291848428a31fe6c2"
     },
     {
+      "path": "src/core/local-audio.mjs",
+      "bytes": 2690,
+      "sha256": "f7826e937b50ec0b454c68293af5abe297af69eccbdc20622c7b6891b4360fa1"
+    },
+    {
       "path": "src/core/model-renderer.mjs",
       "bytes": 8935,
       "sha256": "90f117cb924f5abe4ddaf1006d6712776fbe0532b46f74209d09f1cbc6eac7e0"
@@ -230,13 +235,13 @@
     },
     {
       "path": "src/core/release.mjs",
-      "bytes": 208,
-      "sha256": "bf18c09b4133c5b36bef092fccc1a45b1e10713a10f32ccabf2a8aac0d3a905c"
+      "bytes": 271,
+      "sha256": "fec01f452b016776466e8478b65bcf2fe40885eb7930ccd926737bf473397180"
     },
     {
       "path": "src/core/rights-notice.mjs",
-      "bytes": 2718,
-      "sha256": "bfbebd792784a5ce22e56bf9139865995af88ed520af2d0748904d410f1fed47"
+      "bytes": 2637,
+      "sha256": "8d7a27925ec2f3cd192429b76ae3c83668c826edfd92f08a78df571dbd51fd51"
     },
     {
       "path": "src/core/speakers.mjs",
@@ -320,13 +325,13 @@
     },
     {
       "path": "src/server/export-service.mjs",
-      "bytes": 11616,
-      "sha256": "9d41c5be4ea1fed3aa4acad570c20622e836e4a2a0e8fb61a19fff1c3d5fc537"
+      "bytes": 12350,
+      "sha256": "843df11f81ebcafaf29f7bed63a436128195743280d7da728c6bf555a159ff22"
     },
     {
       "path": "src/server/export-space.mjs",
-      "bytes": 2226,
-      "sha256": "a602995bccf684f332c204461b9b248d8383e0f38a64aacd07a9a1efe5f23a83"
+      "bytes": 2345,
+      "sha256": "bc305958941cbe4733101fd86efe087f67c6cfc91562afe9b8f63e8f71a5b297"
     },
     {
       "path": "src/server/file-hash.mjs",
@@ -337,6 +342,11 @@
       "path": "src/server/launcher.mjs",
       "bytes": 4409,
       "sha256": "ede65eb39a405d3626bfb41aab9c7f71a451a5c755f4789aebfacdd7ac661523"
+    },
+    {
+      "path": "src/server/local-audio.mjs",
+      "bytes": 5446,
+      "sha256": "a7ef4179adce2d0bc31f2b4ac29829a4cb3feae08f13a60306cb80e6b41bc07c"
     },
     {
       "path": "src/server/local-config.mjs",
@@ -380,8 +390,8 @@
     },
     {
       "path": "src/server/server.mjs",
-      "bytes": 19462,
-      "sha256": "638cfae083e3885b95562d660982f162b76cea74a60762e7161a1562215798c5"
+      "bytes": 20463,
+      "sha256": "e86b0ddc41d6249ed21c0f984a8be493aa599d090e8d00f12ac36e11e37425f3"
     },
     {
       "path": "src/server/start.mjs",
@@ -400,8 +410,13 @@
     },
     {
       "path": "src/web/app.mjs",
-      "bytes": 81303,
-      "sha256": "f23d4d8292423dbdc07022407b6b31a90364b6a2449906c91458f5b6daa03324"
+      "bytes": 82453,
+      "sha256": "8e33a17e7453671fa4809a19e48ba982672f54528a08b80feaf44448db8115e6"
+    },
+    {
+      "path": "src/web/audio-import.mjs",
+      "bytes": 5600,
+      "sha256": "b71af148938b62cecc15b750b2ac442a5d481cd67a44aa90054e84f42b81cb20"
     },
     {
       "path": "src/web/credits.mjs",
@@ -425,23 +440,23 @@
     },
     {
       "path": "src/web/index.html",
-      "bytes": 22353,
-      "sha256": "257bfba03b768ddc1a621f7fc77fb13514f0a88be7ee1a80dd493b7864682cb6"
+      "bytes": 23201,
+      "sha256": "1468bde8244edc2fc5a45c06f3a9b28bce2e2a88ed20f1cc2bd78ae0770c6b3a"
     },
     {
       "path": "src/web/music.mjs",
-      "bytes": 5217,
-      "sha256": "37ea4f04f0b9041c4f2f610dc66052c3b0c64130c4411149e68e202e1d7881a4"
+      "bytes": 6922,
+      "sha256": "31027442579a6d6eb0c27c7782bc46e9828012a85a58e0d19c935ddf4918509a"
     },
     {
       "path": "src/web/style.css",
-      "bytes": 40946,
-      "sha256": "db7180d837f3e72a4b546c3ee7c536a48576403a4f78ff43187dbe529f39a752"
+      "bytes": 41148,
+      "sha256": "3025b94c2bff2558f189cd7514ee224d833cc41a1cc2a18dd0d6b7803992f547"
     },
     {
       "path": "src/web/translations.mjs",
-      "bytes": 95136,
-      "sha256": "4923c2e5eab76b7457b75063cf030b5f6a4bb032c1488835fe30cb5187df6328"
+      "bytes": 98185,
+      "sha256": "98d08e373003f975d1332ec9dc4b6881fe8000f5f89e44f6ff836e075971f9bf"
     },
     {
       "path": "src/web/tutorial.mjs",

@@ -7,6 +7,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {SafeDirectory} from './safe-files.mjs';
 import {validateProject,missingResources} from '../core/project.mjs';
 import {compileProject,validateExport} from '../core/timeline.mjs';
+import {LOCAL_AUDIO} from '../core/local-audio.mjs';
 import {mixRange} from '../core/audio-mixer.mjs';
 import {exportSpacePlan,checkExportSpace,relevantVoices,pcmPath} from './export-space.mjs';
 const ACTIVE=new Set(['preparing','rendering','encoding']);
@@ -70,8 +71,16 @@ export class ExportService {
    try{
     for(const id of new Set(relevant.map(v=>v.assetId))){
      job.abort.signal.throwIfAborted();const asset=assets[id];
-     const source=asset&&await this.materials.resolve('assets/'+asset.path);
-     if(!asset||!/^[a-f0-9]{64}$/.test(asset.sha256)||await fileDigest(source)!==asset.sha256)throw new Error('本地 BGM 与素材目录的 SHA-256 不符');
+     const local=asset?.source==='local';
+     const integrityError=local?'本地音频已损坏，请重新导入。':'本地 BGM 与素材目录的 SHA-256 不符';
+     if(!asset||!/^[a-f0-9]{64}$/.test(asset.sha256))throw new Error(integrityError);
+     const source=await (local?this.files:this.materials).resolve(local?asset.path:'assets/'+asset.path);
+     const digest=await fileDigest(source).catch(error=>{if(local&&error.code==='ENOENT')return null;throw error;});
+     if(digest!==asset.sha256)throw new Error(integrityError);
+     if(local){
+      handles.set(id,{handle:await fs.open(source,'r'),local:true});
+      continue;
+     }
      const pcm=pcmPath(asset),target=await this.files.resolve(pcm);let ready=false;
      try{
       const cached=await fs.stat(target);ready=cached.isFile()&&cached.size===asset.samples*8;
@@ -84,15 +93,27 @@ export class ExportService {
        await this.files.resolve(pcm);await fs.rename(part,target);
       }finally{await fs.unlink(part).catch(error=>{if(error.code!=='ENOENT')throw error;});}
      }
-     handles.set(id,await fs.open(target,'r'));
+     handles.set(id,{handle:await fs.open(target,'r'),local:false});
     }
     mixed=await this.files.resolve(jobBase+'/music.f32');const out=await fs.open(mixed,'w');
     try{
-     const read=async(id,start,count)=>{const buffer=Buffer.alloc(count*8);const handle=handles.get(id);if(!handle)throw new Error('音乐样本未准备');const result=await handle.read(buffer,0,buffer.length,start*8);if(result.bytesRead!==buffer.length)throw new Error('音乐数据不完整');return new Float32Array(buffer.buffer,buffer.byteOffset,count*2);};
+     const read=async(id,start,count)=>{
+      const source=handles.get(id);
+      if(!source)throw new Error('音乐样本未准备');
+      const stride=source.local?LOCAL_AUDIO.bytesPerFrame:8;
+      const offset=source.local?LOCAL_AUDIO.headerBytes:0;
+      const buffer=Buffer.alloc(count*stride);
+      const {bytesRead}=await source.handle.read(buffer,0,buffer.length,offset+start*stride);
+      if(bytesRead!==buffer.length)throw new Error('音乐数据不完整');
+      if(!source.local)return new Float32Array(buffer.buffer,buffer.byteOffset,count*2);
+      const samples=new Float32Array(count*LOCAL_AUDIO.channels);
+      for(let i=0;i<samples.length;i++)samples[i]=buffer.readInt16LE(i*2)/32768;
+      return samples;
+     };
      for await(const block of mixRange(compiled,assets,s.start,s.end,read,{signal:job.abort.signal})){await out.write(Buffer.from(block.buffer,block.byteOffset,block.byteLength));}
      await out.sync();
     }finally{await out.close();}
-   }finally{await Promise.all([...handles.values()].map(h=>h.close()));}
+   }finally{await Promise.all([...handles.values()].map(({handle})=>handle.close()));}
   }
   job.abort.signal.throwIfAborted();
   job.output=`exports/${job.id}.mp4`;job.partial=jobBase+'/video.partial.mp4';

@@ -13,6 +13,7 @@ import {t,translateMessage,interfaceLanguage,setInterfaceLanguage,setupLanguageC
 import * as session from '/bootstrap.mjs';
 import {isEditorTheme,isPreviewResolution,readEditorView} from '/core/editor-view.mjs';
 const {token}=session;
+const supportsLocalAudio=session.localAudioImport===true;
 import {compileProject,stateAt,validateExport,hasSpeechPause,endsWithSpeechPause} from '/core/timeline.mjs';
 import {StageRenderer,loadStoryFonts} from '/core/stage.mjs';
 import {exportVideo,cancelExport,exportCapabilities} from '/export.mjs';
@@ -23,7 +24,7 @@ const node=(tag,text,className)=>{const e=document.createElement(tag);if(text!==
 const button=(text,action)=>{const e=node('button',text);e.onclick=()=>run(action);return e;};
 const run=action=>Promise.resolve().then(action).catch(reportError);
 async function api(route,{method='GET',body}={}){const response=await fetch('/api'+route,{method,headers:{'x-gf2-token':token,'content-type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const value=await response.json();if(!response.ok){const error=new Error(value.error??t("本地服务请求失败"));error.status=response.status;throw error;}return value;}
-let catalog,baseCatalog,localExample,actorRenderer,openImageImport,tutorial,project,compiled,projectId,revision=0,selectedScene,selectedLine,time=0,transport,renderer;
+let catalog,baseCatalog,localExample,actorRenderer,openImageImport,openAudioImport,tutorial,project,compiled,projectId,selectedScene,selectedLine,time=0,transport,renderer;
 let dirty=false,editVersion=0,undo=[],redo=[],lastEditKey='',lastEditAt=0,saveTimer,toastTimer;
 let revealed=true,hiddenText=false,renderPending=false,rendering=false,pickerType='background',pickerGroup=null,ticking=false,lastRenderKey='',lastRenderedTimeline=null;
 const saves=new ProjectSaveQueue(api);let projectSwitching=false,exitInProgress=false,editorExited=false;
@@ -102,7 +103,8 @@ function edit(action,{key='',fields=false}={}){
   const row=$('scene-list').querySelector('.line-item.active');
   if(row&&row.dataset.lineId===selectedLine)updateOutlineText(row,line());else renderOutline();
  }else if(key!=='title')renderOutline(fields);
- if(fields)renderInspector();updateSettingsSummary();selectPreviewTime();queueRender();
+ if(fields)renderInspector();else renderEntryDuration(entry());
+ updateSettingsSummary();selectPreviewTime();queueRender();
 }
 let catalogImages;
 function recompile(){
@@ -119,7 +121,15 @@ function recompile(){
   const marks=compiled.duration>=5?[0,.25,.5,.75,1]:[0,1];
   const labels=marks.map(fraction=>fmt(compiled.duration*fraction));
   ruler.replaceChildren(...labels.map(label=>node('span',label)));
- }$('undo').disabled=!undo.length;$('redo').disabled=!redo.length;const selected=entry();$('entry-duration').textContent=selected?t("本句约 {0} 秒 · 作品共 {1} 秒",(selected.end-selected.start).toFixed(1),compiled.duration.toFixed(1)):'';}
+ }
+ $('undo').disabled=!undo.length;
+ $('redo').disabled=!redo.length;
+}
+function renderEntryDuration(selected){
+ $('entry-duration').textContent=selected
+  ?t("本句约 {0} 秒 · 作品共 {1} 秒",(selected.end-selected.start).toFixed(1),compiled.duration.toFixed(1))
+  :'';
+}
 function selectPreviewTime(){const e=entry();time=e?Math.min(e.end,e.start+e.transition+.00001):0;if(transport)transport.position=time;revealed=true;}
 function historyStep(from,to){if(!from.length)return;pause();to.push(clone(project));project=localizeExample(from.pop(),interfaceLanguage());ensureSelection();markDirty();recompile();renderAll();}
 function ensureSelection(){if(!project.scenes.some(s=>s.id===selectedScene))selectedScene=project.scenes[0]?.id;if(!scene()?.entries.some(l=>l.id===selectedLine))selectedLine=scene()?.entries[0]?.id;}
@@ -261,6 +271,7 @@ function updateMouthPunctuationHint(line){
 }
 function updateInspector(){
  const l=line(),e=entry(),indicator=$('entry-position');
+ renderEntryDuration(e);
  const index=compiled.entries.indexOf(e);
  indicator.hidden=index<0;
  if(index>=0){
@@ -279,7 +290,6 @@ function updateInspector(){
  const crop=e?.stage.compositions?.[project.exportSettings.ratio]?.background??{};$('crop-x').value=crop.x??.5;$('crop-y').value=crop.y??.5;$('crop-scale').value=crop.scale??1;
  $('music-op').value=l.music?.op??'inherit';const track=catalog.music.find(x=>x.id===l.music?.assetId);$('choose-music').textContent=track?.name??t("选择音乐");$('choose-music').hidden=(l.music?.op??'inherit')!=='play';$('music-options').hidden=(l.music?.op??'inherit')!=='play';
  $('music-volume').value=(l.music?.volume??.7)*100;$('music-loop').checked=l.music?.loop??true;$('fade-in').value=l.music?.fadeIn??.5;$('fade-out').value=l.music?.fadeOut??.5;
- $('entry-duration').textContent=e?t("本句约 {0} 秒 · 作品共 {1} 秒",(e.end-e.start).toFixed(1),compiled.duration.toFixed(1)):'';
  renderActors();
 }
 const defaultBackgroundCrop = Object.freeze({x:.5,y:.5,scale:1});
@@ -377,7 +387,7 @@ async function persist(manual){
  cancelAutoSave();const version=editVersion;
  setSaveState(manual?'正在保存…':'正在自动保存…');
  const {record,session,current}=await saves.save(project,{manual});
- if(current){projectId=session.id;revision=session.revision;$('delete-current-project').disabled=!projectId;
+ if(current){projectId=session.id;$('delete-current-project').disabled=!projectId;
   if(version===editVersion){if(manual)dirty=false;setSaveState(manual?'已保存':'自动恢复副本已保存');}
   else setSaveState('有更新的修改，等待保存');
  }return record;
@@ -406,14 +416,41 @@ async function exitEditor(saveBeforeExit){
   }
  }
 }
+function activateProject(next,{id=null,revision=0,hasEdits=false}={}){
+ project=next;
+ project.exportSettings??=defaults();
+ project.exportSettings.ratio='16:9';
+ projectId=id;
+ saves.activate(id,revision);
+ undo=[];
+ redo=[];
+ lastEditKey='';
+ dirty=hasEdits;
+ editVersion++;
+ const initial=project.scenes[0];
+ selectedScene=initial.id;
+ selectedLine=initial.entries[0]?.id;
+ recompile();
+ renderAll();
+}
 async function openRecord(id){return switchProject(async()=>{
  const record=await api('/projects/'+id);let data=record.project;
  if(record.recovery)await message(t("发现自动恢复副本"),t("这个工程有尚未手动保存的修改，可以恢复继续编辑。"),[['打开手动保存版',()=>{}],['恢复修改',()=>{data=record.recovery.project;}] ]);
+ await refreshReferencedAudio(data);
  const named=localizeLegacySpeakers(data,baseCatalog.characters);
- project=localizeExample(named,interfaceLanguage());project.exportSettings??=defaults();project.exportSettings.ratio='16:9';projectId=id;revision=record.revision;saves.activate(id,revision);undo=[];redo=[];dirty=data!==record.project||named!==data;editVersion++;recompile();selectedScene=project.scenes[0]?.id;selectedLine=project.scenes[0]?.entries[0]?.id;renderAll();setSaveState(named!==data?'已更新旧工程的发言姓名，请保存':dirty?'已恢复未保存修改':'已打开');
+ activateProject(localizeExample(named,interfaceLanguage()),{
+  id,revision:record.revision,hasEdits:data!==record.project||named!==data,
+ });
+ setSaveState(named!==data?'已更新旧工程的发言姓名，请保存':dirty?'已恢复未保存修改':'已打开');
  if(record.missing.length)await message(t("工程有缺失素材"),t("已保留工程引用，未替换素材。缺失 {0} 项：\n{1}",record.missing.length,record.missing.slice(0,8).map(x=>(x.name??x.assetId)+(x.reason?'：'+x.reason:t("（缺少{0}素材）",x.kind))).join('\n')));
 });}
-async function newProject(data,options){return switchProject(async()=>{project=localizeExample(localizeLegacySpeakers(data??blankProject(),baseCatalog.characters),interfaceLanguage());project.exportSettings??=defaults();project.exportSettings.ratio='16:9';projectId=null;revision=0;saves.activate();undo=[];redo=[];editVersion++;dirty=true;selectedScene=project.scenes[0].id;selectedLine=project.scenes[0].entries[0]?.id;recompile();renderAll();await persist(true);return projectId;},options);}
+async function newProject(data,options){return switchProject(async()=>{
+ if(data)await refreshReferencedAudio(data);
+ const named=localizeLegacySpeakers(data??blankProject(),baseCatalog.characters);
+ activateProject(localizeExample(named,interfaceLanguage()),{hasEdits:true});
+ await persist(true);
+ return projectId;
+},options);}
 async function openExampleCopy(){
  const language=interfaceLanguage();
  const id=await newProject(localExample?clone(localExample):createStarterExample(catalog.version,language));
@@ -452,10 +489,8 @@ async function projectDialog(){
  if(!$('projects-dialog').open)$('projects-dialog').showModal();
 }
 function clearDeletedProject(){
- project=blankProject();projectId=null;revision=0;saves.activate();
- dirty=false;editVersion++;undo=[];redo=[];lastEditKey='';
- selectedScene=project.scenes[0].id;selectedLine=project.scenes[0].entries[0].id;
- recompile();renderAll();setSaveState('已删除工程');
+ activateProject(blankProject());
+ setSaveState('已删除工程');
 }
 async function deleteProject(saved){
  const id=saved?.id??projectId;
@@ -506,7 +541,43 @@ async function deleteProject(saved){
  else if(deleted&&!current)toast(t("工程已删除"));
 }
 function stopAuditions(){document.querySelectorAll('#asset-dialog audio').forEach(a=>a.pause());}
-function openPicker(type){pause();pickerType=type;pickerGroup=null;$('asset-search').value='';$('asset-title').textContent=type==='background'?t("选择背景"):type==='character'?t("选择人物与造型"):t("选择背景音乐");renderPicker();$('asset-dialog').showModal();$('asset-dialog').scrollTop=0;}
+function addLocalAudio(track){
+ if(transport.assets.has(track.id))return false;
+ transport.addAsset(track);
+ baseCatalog.music.unshift(track);
+ return true;
+}
+async function refreshLocalAudio(){
+ const tracks=await api('/local-audio');
+ let changed=false;
+ for(const track of tracks.reverse())changed=addLocalAudio(track)||changed;
+ if(changed)renderCoverage();
+ return changed;
+}
+async function refreshReferencedAudio(data){
+ if(!supportsLocalAudio)return;
+ const unknown=data.scenes.some(scene=>scene.entries.some(item=>{
+  const id=item.music?.assetId;
+  return id?.startsWith('local_audio_')&&!transport.assets.has(id);
+ }));
+ if(unknown)await refreshLocalAudio();
+}
+function useMusic(track){
+ const previous=line().music??{};
+ const newLocal=track.source==='local'&&previous.assetId!==track.id;
+ line().music={
+  ...previous,op:'play',assetId:track.id,volume:previous.volume??.7,
+  loop:newLocal?false:previous.loop??true,fadeIn:newLocal?0:previous.fadeIn??.5,fadeOut:previous.fadeOut??.5,
+  ...(newLocal?{offset:0}:{}),
+ };
+}
+function openPicker(type){
+ pause();pickerType=type;pickerGroup=null;$('asset-search').value='';
+ renderPicker();$('asset-dialog').showModal();$('asset-dialog').scrollTop=0;
+ if(type==='music'&&supportsLocalAudio)run(async()=>{
+  if(await refreshLocalAudio()&&$('asset-dialog').open&&pickerType==='music')renderPicker();
+ });
+}
 // Verified default appearances for characters with multiple story outfits.
 const defaultCharacterCoverIds=new Set([
  'CHA_Bathilda_SSR_01',
@@ -547,16 +618,20 @@ function renderPicker(){
  else if(pickerType==='character')list=list.filter(x=>x.name===pickerGroup);
  $('asset-back').hidden=pickerType!=='character'||pickerGroup===null;$('asset-back').onclick=()=>{pickerGroup=null;renderPicker();};
  $('asset-title').textContent=pickerType==='character'?(pickerGroup?t("{0} · 选择造型",catalogCharacterNames(all.find(item=>item.name===pickerGroup),interfaceLanguage()).name):t("选择人物")):pickerType==='background'?t("选择背景"):t("选择背景音乐");$('asset-grid').replaceChildren();$('asset-count').textContent=t("共 {0} 项，已全部列出。{1}",list.length,pickerType==='music'?t("试听音量不改变作品音量。"):t("可按名称或编号搜索。"));
+ $('import-audio-from-picker').hidden=pickerType!=='music'||!supportsLocalAudio;
  const cards=document.createDocumentFragment();for(const item of list){
   const card=node('article',undefined,'asset-card');
   if(pickerType==='background'){const img=node('img');img.loading='lazy';img.src=item.thumbnailUrl??`/assets/background/${item.id}/thumb`;img.alt=item.name;card.append(img);}
   if(pickerType==='character'){const img=node('img');img.loading='lazy';img.className='character-thumbnail';img.src=item.thumbnailUrl??('/assets/character/'+item.id+'/thumb');img.alt=catalogCharacterNames(item,interfaceLanguage()).name;card.append(img);}
   const label=pickerType==='character'?(showGroups?catalogCharacterNames(item,interfaceLanguage()).name:actorLabel(item)):item.name;
   card.append(node('p',label));if(showGroups)card.append(node('small',t("{0} 套本地造型",item.styles.length),'muted'));if(pickerType==='character'&&!item.expressionsComplete)card.append(node('small',t("模型表情尚未接入"),'muted'));
-  if(pickerType==='music'){const audio=node('audio');audio.controls=true;audio.preload='none';audio.volume=Number($('monitor-volume').value)/100;audio.src=`/assets/music/${item.id}/full`;audio.onplay=()=>document.querySelectorAll('#asset-dialog audio').forEach(other=>{if(other!==audio)other.pause();});card.append(audio);}
+  if(pickerType==='music'){
+   if(item.source==='local')card.append(node('small',t("本地音频"),'muted'));
+   const audio=node('audio');audio.controls=true;audio.preload='none';audio.volume=Number($('monitor-volume').value)/100;audio.src=`/assets/music/${item.id}/full`;audio.onplay=()=>document.querySelectorAll('#asset-dialog audio').forEach(other=>{if(other!==audio)other.pause();});card.append(audio);
+  }
   if(pickerType==='character'&&!showGroups){const support=actorCapabilities(item);card.append(node('small',expressionCountNote(item),'capability-note'));const unavailable=[!support.mouth&&t("无嘴部动态"),!support.blink&&t("无自动眨眼")].filter(Boolean);if(unavailable.length)card.append(node('small',unavailable.join(' · '),'capability-note'));}
   if(showGroups){card.append(button(t("选择造型"),()=>{pickerGroup=item.name;renderPicker();}));cards.append(card);continue;}
-  card.append(button(t("使用这个{0}",pickerType==='background'?t("背景"):pickerType==='character'?t("人物"):t("音乐")),()=>{edit(()=>{if(pickerType==='background'){line().stage??={};line().stage.background=item.id;setBackgroundCrop();}else if(pickerType==='character'){addActor(item);}else line().music={...line().music,op:'play',assetId:item.id,volume:line().music?.volume??.7,loop:line().music?.loop??true,fadeIn:line().music?.fadeIn??.5,fadeOut:line().music?.fadeOut??.5};},{fields:true});stopAuditions();$('asset-dialog').close();}));cards.append(card);
+  card.append(button(t("使用这个{0}",pickerType==='background'?t("背景"):pickerType==='character'?t("人物"):t("音乐")),()=>{edit(()=>{if(pickerType==='background'){line().stage??={};line().stage.background=item.id;setBackgroundCrop();}else if(pickerType==='character'){addActor(item);}else useMusic(item);},{fields:true});stopAuditions();$('asset-dialog').close();}));cards.append(card);
  }
  $('asset-grid').append(cards);
 }
@@ -768,6 +843,9 @@ function bind(){
  $('stage').onpointerup=$('stage').onpointercancel=()=>{if(drag){drag=null;renderInspector();}};
  $('stage-tint').onchange=()=>edit(()=>{line().stage??={};if($('stage-tint').value)line().stage.tint=$('stage-tint').value;else delete line().stage.tint;},{fields:true});
  $('choose-background').onclick=()=>openPicker('background');$('choose-music').onclick=()=>openPicker('music');
+ $('import-audio').onclick=()=>openAudioImport();
+ $('import-audio-from-picker').onclick=()=>{stopAuditions();$('asset-dialog').close();openAudioImport();};
+
  $('restore-background').onclick=()=>edit(()=>setBackgroundCrop(),{fields:true});
  $('inherit-background').onclick=()=>edit(()=>{const crop=entry()?.previous.compositions?.['16:9']?.background;if(line().stage){delete line().stage.background;delete line().stage.color;}setBackgroundCrop(crop);},{fields:true});
  $('clear-background').onclick=()=>edit(()=>{line().stage??={};line().stage.background=null;line().stage.color=$('stage-color').value;},{fields:true});
@@ -821,7 +899,7 @@ function bind(){
  $('cancel-export').onclick=()=>run(cancelExport);
  $('exit-editor-top').onclick=()=>run(()=>exitEditor(true));
  $('quit-editor-top').onclick=()=>run(()=>exitEditor(false));
- document.addEventListener('keydown',event=>{if(document.querySelector('#image-import-dialog[open],#tutorial-dialog[open],#delete-project-dialog[open],#projects-dialog[open]')&&(event.ctrlKey||event.metaKey)&&['s','z'].includes(event.key.toLowerCase())){event.preventDefault();return;}if(projectSwitching||exitInProgress||editorExited)return;if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()==='s'){event.preventDefault();run(()=>persist(true));}if(event.key.toLowerCase()==='z'){event.preventDefault();historyStep(event.shiftKey?redo:undo,event.shiftKey?undo:redo);}}else if(event.code==='Space'&&!['INPUT','TEXTAREA','SELECT','BUTTON','SUMMARY'].includes(document.activeElement.tagName)&&!document.querySelector('dialog[open]')){event.preventDefault();run(()=>advance());}});
+ document.addEventListener('keydown',event=>{if(document.querySelector('#image-import-dialog[open],#audio-import-dialog[open],#tutorial-dialog[open],#delete-project-dialog[open],#projects-dialog[open]')&&(event.ctrlKey||event.metaKey)&&['s','z'].includes(event.key.toLowerCase())){event.preventDefault();return;}if(projectSwitching||exitInProgress||editorExited)return;if(event.ctrlKey||event.metaKey){if(event.key.toLowerCase()==='s'){event.preventDefault();run(()=>persist(true));}if(event.key.toLowerCase()==='z'){event.preventDefault();historyStep(event.shiftKey?redo:undo,event.shiftKey?undo:redo);}}else if(event.code==='Space'&&!['INPUT','TEXTAREA','SELECT','BUTTON','SUMMARY'].includes(document.activeElement.tagName)&&!document.querySelector('dialog[open]')){event.preventDefault();run(()=>advance());}});
  window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 }
 function renderAuthorCredit(){setupCredits(session);}
@@ -981,12 +1059,21 @@ async function initialize(){
  renderCoverage();
  mediaCapabilities=await exportCapabilities();renderExportEncoder();actorRenderer=new ActorRenderer(catalog);renderer=new StageRenderer($('stage'),{actorRenderer:actorRenderer.draw,imageLoader:id=>loadBackgroundImage(catalog,id)});transport=new MusicTransport(catalog.music,{onError:reportError});await loadStoryFonts();
  const firstProject=(await api('/projects')).length===0;
- project=firstProject&&localExample?localizeExample(clone(localExample),interfaceLanguage()):blankProject();project.exportSettings??=defaults();project.exportSettings.ratio='16:9';projectId=null;revision=0;saves.activate();dirty=false;selectedScene=project.scenes[0].id;selectedLine=project.scenes[0].entries[0]?.id;recompile();renderAll();setSaveState(firstProject&&localExample?localExample.title+' · 可直接播放或编辑':'请选择工程，或开始新作品');
+ activateProject(firstProject&&localExample?localizeExample(clone(localExample),interfaceLanguage()):blankProject());
+ setSaveState(firstProject&&localExample?localExample.title+' · 可直接播放或编辑':'请选择工程，或开始新作品');
  openImageImport=setupImageImport({api,getProject:()=>project,onPause:pause,onImport:item=>edit(()=>{
   project.customImages=[...(project.customImages??[]).filter(i=>i.id!==item.id),item];
   if(item.kind==='background'){line().stage??={};line().stage.background=item.id;setBackgroundCrop();}
   else addActor({...item,source:'custom'});
  },{fields:true})});
+ if(supportsLocalAudio){
+  const {setupAudioImport}=await import('/audio-import.mjs');
+  openAudioImport=setupAudioImport({onPause:pause,onImport:track=>{
+   if(addLocalAudio(track))renderCoverage();
+   edit(()=>useMusic(track),{fields:true});
+  }});
+  $('import-audio').hidden=false;
+ }
  tutorial=setupTutorial({
   api,onError:reportError,onPause:pause,getProject:()=>project,
   selectEntry:(sceneId,lineId)=>select(lineId,sceneId),

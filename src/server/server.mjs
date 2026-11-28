@@ -1,5 +1,7 @@
 import {IMAGE_LIMITS} from '../core/custom-images.mjs';
 import {verifyProjectImages} from './custom-images.mjs';
+import {localWaveBytes} from '../core/local-audio.mjs';
+import {LocalAudioLibrary} from './local-audio.mjs';
 import {checkRequestSource,validSessionToken,readJson,HTTP_LIMITS} from './request-security.mjs';
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -22,6 +24,25 @@ import {hasAcceptedNotice,acceptNotice,loadNoticeAgreement} from './notice-store
 import {defaultInterfaceLanguage,isInterfaceLanguage} from '../core/interface-language.mjs';
 import {defaultEditorView,isEditorTheme,isPreviewResolution,readEditorView} from '../core/editor-view.mjs';
 const json=(response,status,data)=>{response.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});response.end(JSON.stringify(data));};
+const publicTrack = ({path, ...track}) => track;
+const webModules = ['app','music','export','image-import','audio-import','tutorial','actors','credits','i18n','translations'];
+const coreModules = [
+ 'timeline','project','audio-mixer','stage','project-budget','custom-images','local-audio','speakers',
+ 'rights-notice','project-save-queue','model-renderer','actor-state','eye-blink','story-order',
+ 'story-interface','subtitle-settings','interface-language','catalog-labels','editor-view',
+ 'example-language','starter-example',
+];
+const staticFiles = new Map([
+ ['/','src/web/index.html'],
+ ['/style.css','src/web/style.css'],
+ ...webModules.map(name=>['/'+name+'.mjs','src/web/'+name+'.mjs']),
+ ...coreModules.map(name=>['/core/'+name+'.mjs','src/core/'+name+'.mjs']),
+]);
+const staticMimeTypes = {
+ '.html':'text/html; charset=utf-8',
+ '.css':'text/css; charset=utf-8',
+ '.mjs':'text/javascript; charset=utf-8',
+};
 async function readInterfaceLanguage(files){
  try{
   const preferences=JSON.parse(await files.read('userdata/interface-language.json'));
@@ -72,7 +93,8 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
  const codeFiles=new SafeDirectory(sourceRoot);
  const files=new SafeDirectory(workspaceDirectory);await files.initialize();
  const assetIntegrity=new AssetIntegrity(materialsDirectory);await assetIntegrity.initialize();const assetBudget=new AssetRequestBudget();
- const catalog=await loadCatalog(assetIntegrity);
+ const catalog=await loadCatalog(assetIntegrity),localAudio=new LocalAudioLibrary(files);
+ catalog.music.unshift(...await localAudio.list());
  const example=await loadLocalExample(config.example,catalog);
  const {documents:licenseDocuments,disclosures:noticeDisclosures}=await loadNoticeAgreement(codeFiles);
  let noticeAccepted=await hasAcceptedNotice(files,noticeDisclosures),tutorialWrites=Promise.resolve();
@@ -129,6 +151,16 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
      return json(response,200,await write);
     }
     if(!noticeAccepted)return json(response,403,{error:'请先阅读并同意创作须知和软件许可。'});
+    if(route==='/api/local-audio'){
+     if(request.method==='GET')return json(response,200,catalog.music.filter(track=>track.source==='local').map(publicTrack));
+     if(request.method==='POST'){
+      const track=await localAudio.import(request);
+      const index=catalog.music.findIndex(item=>item.id===track.id);
+      if(index<0)catalog.music.unshift(track);else catalog.music[index]=track;
+      catalogBody=undefined;
+      return json(response,201,publicTrack(track));
+     }
+    }
     if(route==='/api/tutorial'&&request.method==='GET')return json(response,200,await readTutorialProgress(files));
     if(route==='/api/tutorial'&&request.method==='POST'){
      const {guide,progress}=validateTutorialUpdate(await readJson(request));
@@ -164,7 +196,7 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
      if(!catalog.characters.some(x=>x.id===modelRoute[1]))return json(response,404,{error:'人物素材不存在'});
      return json(response,200,await models.describe(modelRoute[1]));
     }
-    // The catalog is immutable for the process lifetime: serialize it once, not per request.
+    // Reuse the serialized catalog until a local track is imported.
     if(route==='/api/catalog'&&request.method==='GET'){catalogBody??=JSON.stringify(publicCatalog(catalog));response.writeHead(200,{'Content-Type':'application/json; charset=utf-8'});return response.end(catalogBody);}
     if(route==='/api/projects'&&request.method==='GET')return json(response,200,await store.list());
     if(route==='/api/projects'&&request.method==='POST')return json(response,201,await store.create(await readJson(request,IMAGE_LIMITS.projectBytes)));
@@ -198,32 +230,37 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
     return response.end(request.method === 'HEAD' ? undefined : bytes);
    }
    if(route==='/bootstrap.mjs'){
-    response.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'});return response.end(`export const token=${JSON.stringify(token)}; export const release=${JSON.stringify({...release,notesPath:releaseNotesPath})}; export const author=${JSON.stringify(author)}; export const coAuthors=${JSON.stringify(coAuthors)}; export const authorInfoMissing=${JSON.stringify(authorInfoMissing)}; export const noticeAccepted=${JSON.stringify(noticeAccepted)}; export const noticeDisclosures=${JSON.stringify(noticeDisclosures)}; export const interfaceLanguage=${JSON.stringify(interfaceLanguage)}; export const editorView=${JSON.stringify(editorView)};`);
+    response.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8'});return response.end(`export const token=${JSON.stringify(token)}; export const release=${JSON.stringify({...release,notesPath:releaseNotesPath})}; export const author=${JSON.stringify(author)}; export const coAuthors=${JSON.stringify(coAuthors)}; export const authorInfoMissing=${JSON.stringify(authorInfoMissing)}; export const noticeAccepted=${JSON.stringify(noticeAccepted)}; export const noticeDisclosures=${JSON.stringify(noticeDisclosures)}; export const interfaceLanguage=${JSON.stringify(interfaceLanguage)}; export const editorView=${JSON.stringify(editorView)}; export const localAudioImport=true;`);
    }
    const exported=route.match(/^\/exports\/([a-f0-9-]+)\.mp4$/);
    if(exported){const job=exports.get(exported[1]);if(job.state!=='completed')return json(response,404,{error:'视频尚未完成'});const file=await files.resolve(job.output);response.writeHead(200,{'Content-Type':'video/mp4','Content-Length':(await fs.stat(file)).size,'Content-Disposition':`attachment; filename="${job.id}.mp4"`});if(request.method==='HEAD')return response.end();await pipeline(createReadStream(file),response);return;}
-   const asset=route.match(/^\/assets\/(background|music)\/([a-zA-Z0-9_-]+)\/(full|thumb)$/);
-   let relative,type,expectedHash;
-   const characterAsset=route.match(/^\/assets\/character\/([a-zA-Z0-9_-]+)\/(thumb|texture-([0-9]+))$/);
-   if(characterAsset){
-    const item=catalog.characters.find(x=>x.id===characterAsset[1]);
-    const texture=characterAsset[2]==='thumb'
-     ?item?.thumbnail?{path:item.thumbnail}:item?.textures[0]
-     :item?.textures?.find(t=>t.index===Number(characterAsset[3]));
-    if(!texture?.path)return json(response,404,{error:'人物图片不存在'});
-    relative='assets/'+texture.path;expectedHash=texture.sha256;type='image/png';
-   }else if(asset){
-    const list=asset[1]==='background'?catalog.backgrounds:catalog.music;const item=list.find(x=>x.id===asset[2]);
-    if(!item)return json(response,404,{error:'素材不存在'});
-    const thumbnail=asset[1]==='background'&&asset[3]==='thumb'&&item.thumbnail;
-    relative='assets/'+(thumbnail||item.path);expectedHash=thumbnail?undefined:item.sha256;type=asset[1]==='background'?'image/png':'audio/flac';
+   let relative=staticFiles.get(route),type,expectedHash,localTrack;
+   if(relative){
+    type=staticMimeTypes[path.extname(relative)];
    }else{
-    const allowed=new Map([['/','src/web/index.html'],['/app.mjs','src/web/app.mjs'],['/music.mjs','src/web/music.mjs'],['/export.mjs','src/web/export.mjs'],['/style.css','src/web/style.css'],['/core/timeline.mjs','src/core/timeline.mjs'],['/core/project.mjs','src/core/project.mjs'],['/core/audio-mixer.mjs','src/core/audio-mixer.mjs'],['/core/stage.mjs','src/core/stage.mjs']]);
-    for(const file of ['project-budget','custom-images','speakers','rights-notice','project-save-queue','model-renderer','actor-state','eye-blink','story-order','story-interface','subtitle-settings','interface-language','catalog-labels','editor-view','example-language','starter-example'])allowed.set('/core/'+file+'.mjs','src/core/'+file+'.mjs');
-    for(const file of ['image-import','tutorial','actors','credits'])allowed.set('/'+file+'.mjs','src/web/'+file+'.mjs');
-    for(const file of ['i18n','translations'])allowed.set('/'+file+'.mjs','src/web/'+file+'.mjs');
-    relative=allowed.get(route);if(!relative)return json(response,404,{error:'文件不存在'});
-    type=relative.endsWith('.png')?'image/png':relative.endsWith('.ttf')?'font/ttf':relative.endsWith('.html')?'text/html; charset=utf-8':relative.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8';
+    const character=route.match(/^\/assets\/character\/([a-zA-Z0-9_-]+)\/(thumb|texture-([0-9]+))$/);
+    const asset=route.match(/^\/assets\/(background|music)\/([a-zA-Z0-9_-]+)\/(full|thumb)$/);
+    if(character){
+     const item=catalog.characters.find(x=>x.id===character[1]);
+     const texture=character[2]==='thumb'
+      ?item?.thumbnail?{path:item.thumbnail}:item?.textures[0]
+      :item?.textures?.find(t=>t.index===Number(character[3]));
+     if(!texture?.path)return json(response,404,{error:'人物图片不存在'});
+     relative='assets/'+texture.path;expectedHash=texture.sha256;type='image/png';
+    }else if(asset){
+     const list=asset[1]==='background'?catalog.backgrounds:catalog.music;
+     const item=list.find(x=>x.id===asset[2]);
+     if(!item)return json(response,404,{error:'素材不存在'});
+     if(asset[1]==='music'&&item.source==='local'){
+      if(!noticeAccepted||(request.headers['sec-fetch-site']!=='same-origin'&&!validSessionToken(request.headers['x-gf2-token'],token))){
+       return json(response,403,{error:'音乐素材读取失败'});
+      }
+      localTrack=item;relative=item.path;type='audio/wav';
+     }else{
+      const thumbnail=asset[1]==='background'&&asset[3]==='thumb'&&item.thumbnail;
+      relative='assets/'+(thumbnail||item.path);expectedHash=thumbnail?undefined:item.sha256;type=asset[1]==='background'?'image/png':'audio/flac';
+     }
+    }else return json(response,404,{error:'文件不存在'});
    }
    let filename;
    if(relative.startsWith('assets/')){
@@ -231,8 +268,9 @@ export async function startServer(config,{rootId,port=0,onShutdown}={}){
     // Charge the full file, including HEAD/Range: cache misses verify full bytes.
     assetBudget.consume({browser,bytes:assetIntegrity.hashes.get(relative)?.bytes??64*1024*1024});
     verifiedAsset=await assetIntegrity.read(relative,expectedHash);
-   }else filename=await codeFiles.resolve(relative);
+   }else filename=await (localTrack?files:codeFiles).resolve(relative);
    const stat=verifiedAsset?{size:verifiedAsset.bytes.length,isFile:()=>true}:await fs.stat(filename);if(!stat.isFile())return json(response,404,{error:'文件不存在'});
+   if(localTrack&&stat.size!==localWaveBytes(localTrack.samples))throw new Error('本地音频已损坏，请重新导入。');
    let start=0,end=stat.size-1,status=200;
    if(request.headers.range){
     const m=/^bytes=(\d*)-(\d*)$/.exec(request.headers.range);
