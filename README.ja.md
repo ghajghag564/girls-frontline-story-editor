@@ -46,6 +46,8 @@ node scripts/check.mjs
 
 最初のコマンドで配布ファイルの一覧と SHA-256 を検証します。次のコマンドで JavaScript の構文を確認し、テストを実行します。
 
-プロジェクトが独自に作成したコードとドキュメントは **PolyForm Noncommercial 1.0.0** に基づき、ソースコードを公開しています。Purism Core と同梱の互換性パッチには **MIT ライセンス**が適用されます。本プロジェクトは Live2D Inc. から独立しています。 [ライセンス英語原文](LICENSE.md) · [日本語全文参考訳](docs/license-ja.md) · [適用範囲（中国語）](LICENSE_SCOPE.md) · [Purism Core のビルド（中国語）](docs/PURISM.md)
+プロジェクトが独自に作成したコードとドキュメントは **PolyForm Noncommercial 1.0.0** に基づき、ソースコードを公開しています。Purism Core と同梱の互換性パッチには **MIT ライセンス**が適用されます。本プロジェクトは Live2D Inc. から独立しています。 [適用範囲（中国語）](LICENSE_SCOPE.md) · [Purism Core のビルド（中国語）](docs/PURISM.md)
+
+[ライセンス英語原文](LICENSE.md) · [简体中文全文译读](docs/license-zh-CN.md) · [繁體中文全文譯讀](docs/license-zh-TW.md) · [日本語全文参考訳](docs/license-ja.md)
 
 ソフトウェア作者は章帅瑛、共同開発は一只鲍鱼吖です。 [クレジット](AUTHORS)
